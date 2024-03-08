@@ -1,5 +1,6 @@
 import aiogram 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import KeyboardButton, InlineKeyboardButton
+from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import __token__
@@ -11,6 +12,19 @@ admin_chat_ids = SheetManager.get_admins_id()
 # print(admin_chat_ids)
 
 '''__________InlineKeyboardButtons__________'''
-btn_authorization = aiogram.types.InlineKeyboardButton(text = 'Authorization', callback_data='authorization')
-builder = InlineKeyboardBuilder()
-builder.row(btn_authorization)
+start_msg_builder = InlineKeyboardBuilder()
+inl_btn_order = InlineKeyboardButton(
+    text='Створити бронь на лікі 💊', 
+    callback_data='btn_order')
+inl_btn_consultation = InlineKeyboardButton(
+    text='Задати питання фахівцю 👩‍⚕️', 
+    callback_data='btn_consultation')
+start_msg_builder.row(inl_btn_order, inl_btn_consultation, width=1)
+
+'''__________ReplyKeyboardButtons__________'''
+rpl_btn_geo = KeyboardButton(text="Надати геолокацію🗺", request_location=True)
+rpl_btn_contac = KeyboardButton(text="Надати контакт📲", request_contact=True)
+kb = [[
+    rpl_btn_contac
+]]
+rpl_builder = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
