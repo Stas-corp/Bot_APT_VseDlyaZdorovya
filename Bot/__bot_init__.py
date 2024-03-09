@@ -5,9 +5,11 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import __token__
 import google_sheet_connect
+import json_manager
 
 bot = aiogram.Bot(__token__.TOKEN)
 SheetManager = google_sheet_connect.Sheet_Manager()
+JsonManager = json_manager.Manager()
 admin_chat_ids = SheetManager.get_admins_id()
 # print(admin_chat_ids)
 
@@ -28,3 +30,4 @@ kb = [[
     rpl_btn_contac
 ]]
 rpl_builder = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+
