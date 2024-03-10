@@ -12,8 +12,8 @@ class Manager:
             # Если папка не существует, создаем ее
             os.makedirs(directory)
     
-    def login_user(self, id):
-        data = self.__load_data()
+    def login_user(self, id: str) -> bool:
+        data = self._load_data()
         if id in data:
             return True
         else:
@@ -22,8 +22,7 @@ class Manager:
     def _load_data(self) -> dict:
         if not os.stat(self.file_path).st_size == 0:
             with open(self.file_path, 'r') as file:
-                data = json.load(file)
-            return data
+                return json.load(file)
         else:
             return {}
 

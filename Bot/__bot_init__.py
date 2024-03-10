@@ -17,10 +17,10 @@ admin_chat_ids = SheetManager.get_admins_id()
 start_msg_builder = InlineKeyboardBuilder()
 inl_btn_order = InlineKeyboardButton(
     text='Створити бронь на лікі 💊', 
-    callback_data='btn_order')
+    callback_data='cli_btn_order')
 inl_btn_consultation = InlineKeyboardButton(
     text='Задати питання фахівцю 👩‍⚕️', 
-    callback_data='btn_consultation')
+    callback_data='cli_btn_consultation')
 start_msg_builder.row(inl_btn_order, inl_btn_consultation, width=1)
 
 '''__________ReplyKeyboardButtons__________'''

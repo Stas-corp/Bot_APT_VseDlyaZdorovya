@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 order_adm_builder = InlineKeyboardBuilder()
 inl_btn_order = InlineKeyboardButton(
     text='Опрацювати', 
-    callback_data='process_order')
+    callback_data='adm_process_order')
 inl_btn_consultation = InlineKeyboardButton(
     text='Задати питання клієнту', 
     callback_data='adm_consultation')
