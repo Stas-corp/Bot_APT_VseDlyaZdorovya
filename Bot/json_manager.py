@@ -9,7 +9,6 @@ class Manager:
     def check_path(self):
         directory = os.path.dirname(self.file_path)
         if not os.path.exists(directory):
-            # Если папка не существует, создаем ее
             os.makedirs(directory)
     
     def login_user(self, id: str) -> bool:
