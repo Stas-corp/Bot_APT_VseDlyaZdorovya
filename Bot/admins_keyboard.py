@@ -13,10 +13,10 @@ inl_btn_consultation = InlineKeyboardButton(
 adm_order_builder.row(inl_btn_order, inl_btn_consultation, width=1)
 
 adm_consultation_builder = InlineKeyboardBuilder()
-inl_btn_start_chating = InlineKeyboardButton(
+inl_btn_answer_consultation = InlineKeyboardButton(
     text='Надати відповідь', 
     callback_data='adm_start_chatig')
-adm_consultation_builder.row(inl_btn_start_chating, width=1)
+adm_consultation_builder.row(inl_btn_answer_consultation, width=1)
 
 '''__________ReplyKeyboardButtons__________'''
 disconect_consultation = KeyboardButton(text="Завершити поточну комунікацію 🛑")

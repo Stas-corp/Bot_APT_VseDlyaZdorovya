@@ -32,7 +32,8 @@ class Manager:
     def add_user(self, user_data: dict):
         data = self._load_data()
         key = list(user_data.keys())[0]
-        print(f'_______data_json_______\n{data}')
+        # print(f'_______data_json_______\n{data}')
+        print('_______NEW USER_______')
         print(f'_______key_______\n{key}')
         print(f'_______user_data_______\n{user_data}')
         if not key in data:

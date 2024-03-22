@@ -26,11 +26,13 @@ class Form(StatesGroup):
     during_consultation = State()
     '''consultation process'''
     
-async def order_mess(mess: types.Message):
+async def order_mess(mess: types.Message, user_id: int):
     message = 'Я можу у тебе прийняти бронь на ліки та надати можливисть задати питання фахівцю!'
-    await bot.send_message(mess.chat.id,
+    await bot.send_message(user_id,
                            message,
                            reply_markup=b_init.start_msg_builder.as_markup())
+    
+# async def adm_question_to_client(mess: types.Message, user_id: int)
 
 @dp.message(Command('adm'), F.from_user.id.in_(admin_chat_ids))
 async def get_auth_user(mess: types.Message):
@@ -53,7 +55,7 @@ async def send_welcome(mess: types.Message, state: FSMContext):
                             message,
                             reply_markup=b_init.rpl_builder)
     else:
-        await order_mess(mess)
+        await order_mess(mess, mess.from_user.id)
 
 @dp.message(F.contact, Form.no_contact)
 async def get_contac(mess: types.Message, state: FSMContext):
@@ -77,7 +79,7 @@ async def get_contac(mess: types.Message, state: FSMContext):
                            reply_markup=types.ReplyKeyboardRemove())
     
     # await asyncio.sleep(1)
-    await order_mess(mess)
+    await order_mess(mess, mess.chat.id)
 
 @dp.message(Form.order)
 async def order_received(mess: types.Message, state: FSMContext):
@@ -95,7 +97,7 @@ async def order_received(mess: types.Message, state: FSMContext):
         
     client_reply = "Ваше замовлення прийнято. Ми скоро з вами зв'яжемося!"
     await mess.reply(client_reply)
-    await state.set_state(Form.await_order)
+    await state.set_state(Form.during_consultation)
 
 @dp.message(Form.runUp_consultation)
 async def runUp_consultation(mess: types.Message, state: FSMContext):
@@ -123,10 +125,7 @@ async def during_consultation(mess: types.Message, state: FSMContext):
         await bot.send_message(ChatManager.client_id,
                                message,
                                reply_markup=types.ReplyKeyboardRemove())
-        message = 'Я можу у тебе прийняти бронь на ліки та надати можливисть задати питання фахівцю!'
-        await bot.send_message(ChatManager.client_id,
-                           message,
-                           reply_markup=b_init.start_msg_builder.as_markup())
+        await order_mess(mess, ChatManager.client_id)
     else:
         await ChatManager.chating(mess)
     
@@ -155,7 +154,7 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.send_message(client_id, client_message)
         await bot.answer_callback_query(call.id)
 
-    if call.data == adm_kb.inl_btn_start_chating.callback_data:
+    if call.data == adm_kb.inl_btn_answer_consultation.callback_data:
         await state.set_state(Form.during_consultation)
         message = call.message.text + '\nзапит клієнта взято в обробку ⚙️'
         await bot.edit_message_text(message,
@@ -166,6 +165,17 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.send_message(call.from_user.id, message, reply_markup=adm_kb.adm_rpl_builder)
         client_id = int(call.message.text.split()[0][3:])
         ChatManager.set_id_chating(call.from_user.id, client_id)
+        await bot.answer_callback_query(call.id)
+    
+    if call.data == adm_kb.inl_btn_consultation.callback_data:
+        await state.set_state(Form.during_consultation)
+        client_id = int(call.message.text.split()[0][3:])
+        client_message = 'Адміністратор👩‍💻 хоче задати вам запитання!\nОчікуйте на повідомлення 📩'
+        await bot.send_message(client_id, client_message)
+        message = f'Введіть ваше запитання клієнту 👇'
+        await bot.send_message(call.from_user.id, message, reply_markup=adm_kb.adm_rpl_builder)
+        ChatManager.set_id_chating(call.from_user.id, client_id)
+        await bot.answer_callback_query(call.id)
         
 async def main():
     await dp.start_polling(bot)
