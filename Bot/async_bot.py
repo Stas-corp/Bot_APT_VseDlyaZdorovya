@@ -5,6 +5,7 @@ from aiogram import Dispatcher, types
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart, Command
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import __bot_init__ as b_init
 import admins_keyboard as adm_kb
@@ -97,7 +98,7 @@ async def order_received(mess: types.Message, state: FSMContext):
         
     client_reply = "Ваше замовлення прийнято. Ми скоро з вами зв'яжемося!"
     await mess.reply(client_reply)
-    await state.set_state(Form.during_consultation)
+    await state.set_state(Form.during_consultation) # НАДО ПОДУМАТЬ НАД СТАТУСОМ!
 
 @dp.message(Form.runUp_consultation)
 async def runUp_consultation(mess: types.Message, state: FSMContext):
@@ -126,6 +127,7 @@ async def during_consultation(mess: types.Message, state: FSMContext):
                                message,
                                reply_markup=types.ReplyKeyboardRemove())
         await order_mess(mess, ChatManager.client_id)
+        ChatManager.clear_id_chating()
     else:
         await ChatManager.chating(mess)
     
@@ -150,13 +152,22 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
     if call.data == adm_kb.inl_btn_order.callback_data:
         client_message = 'Адміністратор👩‍💻 взяв в опрацювання ваше замовлення!\nОчікуйте на підтвердження!'
         client_id = call.message.text.split()[0][3:]
-        # print(client_id)
         await bot.send_message(client_id, client_message)
+
+        message = call.message.text + '\nЗамовлення клієнта взято в обробку ⚙️'
+        keyboard = InlineKeyboardBuilder().row(
+            adm_kb.inl_btn_qustion_client, 
+            adm_kb.inl_btn_accept_order,
+            width=1)
+        await bot.edit_message_text(message,
+                                    call.message.chat.id,
+                                    call.message.message_id,
+                                    reply_markup=keyboard.as_markup())
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_answer_consultation.callback_data:
         await state.set_state(Form.during_consultation)
-        message = call.message.text + '\nзапит клієнта взято в обробку ⚙️'
+        message = call.message.text + '\nЗапит клієнта взято в обробку ⚙️'
         await bot.edit_message_text(message,
                                     call.message.chat.id,
                                     call.message.message_id,
@@ -167,8 +178,8 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         ChatManager.set_id_chating(call.from_user.id, client_id)
         await bot.answer_callback_query(call.id)
     
-    if call.data == adm_kb.inl_btn_consultation.callback_data:
-        await state.set_state(Form.during_consultation)
+    if call.data == adm_kb.inl_btn_qustion_client.callback_data:
+        await state.set_state(Form.during_consultation) #НАДО ПОДУМАТЬ НАД СТАТУСОМ
         client_id = int(call.message.text.split()[0][3:])
         client_message = 'Адміністратор👩‍💻 хоче задати вам запитання!\nОчікуйте на повідомлення 📩'
         await bot.send_message(client_id, client_message)

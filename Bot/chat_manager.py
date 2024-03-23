@@ -21,6 +21,10 @@ class ChatManager:
         self.admin_id = admin_id
         self.client_id = client_id
 
+    def clear_id_chating(self):
+        self.admin_id = None
+        self.client_id = None
+
     async def chating(self, mess: types.Message):
         print(f'Chating between {self.admin_id} and {self.client_id}\nMess from: {mess.from_user.full_name}\nMess text: {mess.text}')
         if mess.from_user.id == self.admin_id:
