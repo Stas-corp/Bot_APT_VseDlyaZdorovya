@@ -21,7 +21,9 @@ admin_chat_ids = b_init.admin_chat_ids
 class Form(StatesGroup):
     no_contact = State()
     order = State()
-    await_order = State()
+    order_await = State()
+    order_processing = State()
+    set_adress = State()
     runUp_consultation = State()
     '''preparation for the consultation process'''
     during_consultation = State()
@@ -82,9 +84,19 @@ async def get_contac(mess: types.Message, state: FSMContext):
     # await asyncio.sleep(1)
     await order_mess(mess, mess.chat.id)
 
+@dp.message(Form.set_adress)
+async def set_adress(mess: types.Message, state: FSMContext):
+    await state.update_data(medicament=mess.text.lower())
+    message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку по житловому комплексу:\n(вулиця, будинок, під'їзд, поверх, квартира)"
+    await bot.send_message(mess.from_user.id,
+                           message)
+    await state.set_state(Form.order)
+
 @dp.message(Form.order)
 async def order_received(mess: types.Message, state: FSMContext):
-    admin_message = f"id:{mess.from_user.id}\nКлієнт: @{mess.from_user.username}\nІм'я: {mess.from_user.full_name}\nОтриманно нове замовлення:\n\n{mess.text}"
+    await state.update_data(adress=mess.text)
+    user_data = await state.get_data()
+    admin_message = f"id:{mess.from_user.id}\nКлієнт: @{mess.from_user.username}\nІм'я: {mess.from_user.full_name}\n📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n\n{user_data['medicament']}"
     for id_adm in admin_chat_ids:
         data = JsonManager._load_data()
         user_number = data[str(mess.from_user.id)]['number']
@@ -95,10 +107,10 @@ async def order_received(mess: types.Message, state: FSMContext):
         await bot.send_message(chat_id=id_adm,
                                text=admin_message, 
                                reply_markup=adm_kb.adm_order_builder.as_markup())
-        
-    client_reply = "Ваше замовлення прийнято. Ми скоро з вами зв'яжемося!"
-    await mess.reply(client_reply)
-    await state.set_state(Form.during_consultation) # НАДО ПОДУМАТЬ НАД СТАТУСОМ!
+    client_message = "Ваше замовлення прийнято ✅\nМи скоро з вами зв'яжемося!"
+    await bot.send_message(mess.from_user.id,
+                           client_message)
+    await state.set_state(Form.order_await) # НАДО ПОДУМАТЬ НАД СТАТУСОМ!
 
 @dp.message(Form.runUp_consultation)
 async def runUp_consultation(mess: types.Message, state: FSMContext):
@@ -118,6 +130,18 @@ async def runUp_consultation(mess: types.Message, state: FSMContext):
     await mess.reply(client_reply)
     await state.set_state(Form.during_consultation)
 
+@dp.message(Form.order_await)
+async def order_consultation(mess: types.Message, state: FSMContext):
+    if mess.text == adm_kb.disconect_consultation.text:
+        await state.set_state(Form.order_processing)
+        message = 'Фахівець 👩‍⚕️ дізнався необхідну інформацію з приводу вашого замовлення!\nОчікуйте на підтвердження замовлення!'
+        await bot.send_message(ChatManager.client_id,
+                               message,
+                               reply_markup=types.ReplyKeyboardRemove())
+        ChatManager.clear_id_chating()
+    else:
+        await ChatManager.chating(mess)
+
 @dp.message(Form.during_consultation)
 async def during_consultation(mess: types.Message, state: FSMContext):
     if mess.text == adm_kb.disconect_consultation.text:
@@ -135,9 +159,9 @@ async def during_consultation(mess: types.Message, state: FSMContext):
 async def callback_client(call: types.CallbackQuery, state: FSMContext):
     # print('cli_handler')
     if call.data == b_init.inl_btn_order.callback_data:
-        message = '''Створення броні 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'''
+        message = '''Створення замовлення для доставки по ЖК 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'''
         await bot.send_message(call.from_user.id, text=message)
-        await state.set_state(Form.order)
+        await state.set_state(Form.set_adress)
         await bot.answer_callback_query(call.id)
 
     if call.data == b_init.inl_btn_consultation.callback_data:
@@ -150,15 +174,27 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
 async def callback_admin(call: types.CallbackQuery, state: FSMContext):
     # print('adm_handler')
     if call.data == adm_kb.inl_btn_order.callback_data:
+        await state.set_state(Form.order_processing)
         client_message = 'Адміністратор👩‍💻 взяв в опрацювання ваше замовлення!\nОчікуйте на підтвердження!'
         client_id = call.message.text.split()[0][3:]
         await bot.send_message(client_id, client_message)
-
-        message = call.message.text + '\nЗамовлення клієнта взято в обробку ⚙️'
+        message = call.message.text + '\n\n📌 Замовлення клієнта взято в обробку⚙️'
         keyboard = InlineKeyboardBuilder().row(
             adm_kb.inl_btn_qustion_client, 
             adm_kb.inl_btn_accept_order,
             width=1)
+        await bot.edit_message_text(message,
+                                    call.message.chat.id,
+                                    call.message.message_id,
+                                    reply_markup=keyboard.as_markup())
+        await bot.answer_callback_query(call.id)
+
+    if call.data == adm_kb.inl_btn_accept_order.callback_data:
+        client_message = 'Адміністратор👩‍💻 Підтвердив ваше замовлення ✅\nОчікуйте на доставку!'
+        client_id = call.message.text.split()[0][3:]
+        await bot.send_message(client_id, client_message)
+        message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅'
+        keyboard = InlineKeyboardBuilder().row(adm_kb.inl_btn_qustion_client, width=1)
         await bot.edit_message_text(message,
                                     call.message.chat.id,
                                     call.message.message_id,
@@ -179,7 +215,7 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
     
     if call.data == adm_kb.inl_btn_qustion_client.callback_data:
-        await state.set_state(Form.during_consultation) #НАДО ПОДУМАТЬ НАД СТАТУСОМ
+        await state.set_state(Form.order_await) #НАДО ПОДУМАТЬ НАД СТАТУСОМ
         client_id = int(call.message.text.split()[0][3:])
         client_message = 'Адміністратор👩‍💻 хоче задати вам запитання!\nОчікуйте на повідомлення 📩'
         await bot.send_message(client_id, client_message)
