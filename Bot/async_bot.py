@@ -107,7 +107,7 @@ async def order_received(mess: types.Message, state: FSMContext):
         await bot.send_message(chat_id=id_adm,
                                text=admin_message, 
                                reply_markup=adm_kb.adm_order_builder.as_markup())
-    client_message = "Ваше замовлення прийнято ✅\nМи скоро з вами зв'яжемося!"
+    client_message = "Ваше замовлення прийнято 📥\nМи скоро з вами зв'яжемося!"
     await bot.send_message(mess.from_user.id,
                            client_message)
     await state.set_state(Form.order_await) # НАДО ПОДУМАТЬ НАД СТАТУСОМ!
@@ -190,7 +190,7 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_accept_order.callback_data:
-        client_message = 'Адміністратор👩‍💻 Підтвердив ваше замовлення ✅\nОчікуйте на доставку!'
+        client_message = 'Ваше замовлення підтверджено✅\nОчікуйте на доставку!'
         client_id = call.message.text.split()[0][3:]
         await bot.send_message(client_id, client_message)
         message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅'
@@ -220,7 +220,8 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         client_message = 'Адміністратор👩‍💻 хоче задати вам запитання!\nОчікуйте на повідомлення 📩'
         await bot.send_message(client_id, client_message)
         message = f'Введіть ваше запитання клієнту 👇'
-        await bot.send_message(call.from_user.id, message, reply_markup=adm_kb.adm_rpl_builder)
+        # await bot.send_message(call.from_user.id, message, reply_markup=adm_kb.adm_rpl_builder)
+        await call.message.reply(message, reply_markup=adm_kb.adm_rpl_builder)
         ChatManager.set_id_chating(call.from_user.id, client_id)
         await bot.answer_callback_query(call.id)
         

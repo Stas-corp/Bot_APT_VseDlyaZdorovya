@@ -13,6 +13,9 @@ inl_btn_qustion_client = InlineKeyboardButton(
 inl_btn_accept_order = InlineKeyboardButton(
     text='Підтвердити замовлення', 
     callback_data='adm_accept_order')
+inl_btn_acept_delivery = InlineKeyboardButton(
+    text='Замовлення доставлено',
+    callback_data='adm_accept_delivery')
 adm_order_builder.row(inl_btn_order, width=1)
 
 adm_consultation_builder = InlineKeyboardBuilder()
