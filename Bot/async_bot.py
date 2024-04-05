@@ -15,8 +15,8 @@ import chat_manager
 bot = b_init.bot
 dp = Dispatcher()
 JsonManager = b_init.JsonManager
-ChatManager = chat_manager.ChatManager()
 admin_chat_ids = b_init.admin_chat_ids
+ChatManager = chat_manager.ChatManager()
 
 class Form(StatesGroup):
     no_contact = State()
@@ -170,6 +170,10 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
         await state.set_state(Form.runUp_consultation)
         await bot.answer_callback_query(call.id)
 
+    await bot.edit_message_reply_markup(call.message.chat.id,
+                                        call.message.message_id,
+                                        reply_markup=None)
+
 @dp.callback_query(lambda call: call.data.startswith('adm'))
 async def callback_admin(call: types.CallbackQuery, state: FSMContext):
     # print('adm_handler')
@@ -194,11 +198,25 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         client_id = call.message.text.split()[0][3:]
         await bot.send_message(client_id, client_message)
         message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅'
-        keyboard = InlineKeyboardBuilder().row(adm_kb.inl_btn_qustion_client, width=1)
+        keyboard = InlineKeyboardBuilder().row(
+            adm_kb.inl_btn_qustion_client, 
+            adm_kb.inl_btn_acept_delivery,
+            width=1)
         await bot.edit_message_text(message,
                                     call.message.chat.id,
                                     call.message.message_id,
                                     reply_markup=keyboard.as_markup())
+        await bot.answer_callback_query(call.id)
+
+    if call.data == adm_kb.inl_btn_acept_delivery.callback_data:
+        client_message = 'Ваше замовлення було доставлено! 📦\n\nДякую що обераєте нас!'
+        client_id = call.message.text.split()[0][3:]
+        await bot.send_message(client_id, client_message)
+        message = call.message.text + '\n\n📌 Замовлення клієнта доставлено 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
+        await bot.edit_message_text(message,
+                                    call.message.chat.id,
+                                    call.message.message_id,
+                                    reply_markup=None)
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_answer_consultation.callback_data:
