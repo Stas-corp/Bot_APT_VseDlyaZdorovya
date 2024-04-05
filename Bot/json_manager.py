@@ -11,9 +11,9 @@ class Manager:
         if not os.path.exists(directory):
             os.makedirs(directory)
     
-    def login_user(self, id: str) -> bool:
+    def login_user(self, user_id: str) -> bool:
         data = self._load_data()
-        if id in data:
+        if user_id in data:
             return True
         else:
             return False
@@ -25,9 +25,14 @@ class Manager:
         else:
             return {}
 
-    def __save_data(self, data):
+    def __save_data(self, data) -> None:
         with open(self.file_path, 'w') as file:
             json.dump(data, file, indent=4)
+
+    def add_adress(self, user_id: str, adress: str) -> None:
+        data = self._load_data()
+        data[user_id]['adress'] = adress
+        self.__save_data(data)
 
     def add_user(self, user_data: dict):
         data = self._load_data()

@@ -24,6 +24,12 @@ inl_btn_consultation = InlineKeyboardButton(
 inl_btn_delivery = InlineKeyboardButton(
     text='Замовити лікі 📦',
     callback_data='cli_btn_order')
+inl_btn_save_adress = InlineKeyboardButton(
+    text='Зберегти адресу ✅',
+    callback_data='cli_btn_save_adress')
+inl_btn_not_save_adress = InlineKeyboardButton(
+    text='Не зберігати ❌',
+    callback_data='cli_btn_not_save_adress')
 start_msg_builder.row(inl_btn_order, inl_btn_delivery, width=2)
 start_msg_builder.row(inl_btn_consultation, width=1)
 

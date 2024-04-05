@@ -3,6 +3,7 @@ client_secret_654121756617-2cg5tc4hip2skf3pc47jeppc9f1grfqp.apps.googleuserconte
 __token__.py
 data
 qwe.py
+.vscode
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
