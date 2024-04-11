@@ -34,6 +34,14 @@ class Manager:
         data[user_id]['adress'] = adress
         self.__save_data(data)
 
+    def get_adress(self, user_id: str) -> str | None:
+        '''Return user adress or Note'''
+        data = self._load_data()
+        if self.login_user(user_id) and data[user_id].get('adress') is not None:
+            return data[user_id]['adress']
+        else:
+            return None
+
     def add_user(self, user_data: dict):
         data = self._load_data()
         key = list(user_data.keys())[0]
@@ -44,3 +52,8 @@ class Manager:
         if not key in data:
             data[key] = user_data[key]
             self.__save_data(data)
+
+
+if __name__ == '__main__':
+    mng = Manager()
+    print(mng.get_adress('5493395971'))

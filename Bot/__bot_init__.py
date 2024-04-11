@@ -14,7 +14,6 @@ admin_chat_ids = SheetManager.get_admins_id()
 # print(admin_chat_ids)
 
 '''__________InlineKeyboardButtons__________'''
-start_msg_builder = InlineKeyboardBuilder()
 inl_btn_order = InlineKeyboardButton(
     text='Доставка 💊 по ЖК ',
     callback_data='cli_btn_jkDelivery')
@@ -30,8 +29,19 @@ inl_btn_save_adress = InlineKeyboardButton(
 inl_btn_not_save_adress = InlineKeyboardButton(
     text='Не зберігати ❌',
     callback_data='cli_btn_not_save_adress')
-start_msg_builder.row(inl_btn_order, inl_btn_delivery, width=2)
-start_msg_builder.row(inl_btn_consultation, width=1)
+inl_accept_adress_yes = InlineKeyboardButton(
+    text='Так ✅',
+    callback_data='cli_btn_accept_adress_yes')
+inl_accept_adress_no = InlineKeyboardButton(
+    text='Ні ❌',
+    callback_data='cli_btn_accept_adress_no')
+
+start_inl_builder = InlineKeyboardBuilder()
+start_inl_builder.row(inl_btn_order, inl_btn_delivery, width=2)
+start_inl_builder.row(inl_btn_consultation, width=1)
+
+accept_user_adress = InlineKeyboardBuilder()
+accept_user_adress.row(inl_accept_adress_yes, inl_accept_adress_no, width=2)
 
 '''__________ReplyKeyboardButtons__________'''
 rpl_btn_geo = KeyboardButton(text="Надати геолокацію🗺", request_location=True)

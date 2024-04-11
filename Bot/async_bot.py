@@ -35,10 +35,11 @@ async def order_mess(mess: types.Message, user_id: int):
     message = 'Я можу у тебе прийняти бронь на ліки та надати можливисть задати питання фахівцю!'
     await bot.send_message(user_id,
                            message,
-                           reply_markup=b_init.start_msg_builder.as_markup())
+                           reply_markup=b_init.start_inl_builder.as_markup())
     
 @dp.message(Form.save_adress)    
-async def save_adress(mess: types.Message):
+async def save_adress(mess: types.Message, state: FSMContext):
+    await state.update_data(adress=mess.text)
     message = 'Зберегти вашу адресу 📍 для наступних замовлень?'
     keyboard = InlineKeyboardBuilder()
     keyboard.row(b_init.inl_btn_save_adress, b_init.inl_btn_not_save_adress, width=1)
@@ -92,25 +93,31 @@ async def get_contac(mess: types.Message, state: FSMContext):
 
 @dp.message(Form.set_adress)
 async def set_adress(mess: types.Message, state: FSMContext):
-    data = JsonManager._load_data()
-    await state.update_data(medicament=mess.text.lower())
-    if not 'adress' in data[str(mess.from_user.id)]:
-        message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку по житловому комплексу:\n(вулиця, будинок, під'їзд, поверх, квартира)"
-        await bot.send_message(mess.from_user.id, message)
-        await state.set_state(Form.save_adress)
-    else:
-        adress = data[str(mess.from_user.id)]['adress']
-        await state.update_data(adress=adress)
-        await state.set_state(Form.order)
-        await order_received(mess, state)
+    # data = JsonManager._load_data()
+    # user_adress = JsonManager.get_adress(str(mess.from_user.id))
+    # if user_adress is None:
+    message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку по житловому комплексу:\n(вулиця, будинок, під'їзд, поверх, квартира)"
+    await bot.send_message(mess.from_user.id, message)
+    await state.set_state(Form.save_adress)
+    # else:
+    #     await state.update_data(adress=user_adress)
+    #     await state.set_state(Form.order)
+    #     await order_received(mess, state)
 
-# @dp.message(Form.check_adress)
-# async def check_adress(mess: types.Message, state: FSMContext):
-#     data = JsonManager._load_data()
-#     if 'adress' in data[str(mess.from_user.id)]:
-#         await state.set_state(Form.order)
-#     else:
-#         await save_adress(mess, mess.from_user.id)
+@dp.message(Form.check_adress)
+async def check_adress(mess: types.Message, state: FSMContext):
+    await state.update_data(medicament=mess.text.lower())
+    user_adress = JsonManager.get_adress(str(mess.from_user.id))
+    if user_adress is None:
+        await state.set_state(Form.set_adress)
+        await set_adress(mess, state)
+        # await state.set_state(Form.order)
+    else:
+        # await save_adress(mess, mess.from_user.id)
+        await state.update_data(adress=user_adress)
+        message = f'Доставку робимо на цей адрес?\n📍Адреса: {user_adress}'
+        await mess.reply(message,
+                         reply_markup=b_init.accept_user_adress.as_markup())
 
 @dp.message(Form.order)
 async def order_received(mess: types.Message, state: FSMContext):
@@ -182,7 +189,7 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
     if call.data == b_init.inl_btn_order.callback_data:
         message = '''Створення замовлення для доставки по ЖК 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'''
         await bot.send_message(call.from_user.id, text=message)
-        await state.set_state(Form.set_adress)
+        await state.set_state(Form.check_adress)
         await bot.answer_callback_query(call.id)
 
     if call.data == b_init.inl_btn_consultation.callback_data:
@@ -194,15 +201,23 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
     if call.data == b_init.inl_btn_save_adress.callback_data:
         previous_message = call.message.reply_to_message
         JsonManager.add_adress(str(call.from_user.id), previous_message.text)
-        await state.update_data(adress=previous_message.text)
         await state.set_state(Form.order)
         await order_received(previous_message, state)
 
     if call.data == b_init.inl_btn_not_save_adress.callback_data:
         previous_message = call.message.reply_to_message
-        await state.update_data(adress=previous_message.text)
         await state.set_state(Form.order)
         await order_received(previous_message, state)
+
+    if await state.get_state() == Form.check_adress and call.data == b_init.inl_accept_adress_yes.callback_data:
+        previous_message = call.message.reply_to_message
+        await state.set_state(Form.order)
+        await order_received(previous_message, state)
+
+    if await state.get_state() == Form.check_adress and call.data == b_init.inl_accept_adress_no.callback_data:
+        previous_message = call.message.reply_to_message
+        await state.set_state(Form.set_adress)
+        await set_adress(previous_message, state)
 
     await bot.edit_message_reply_markup(call.message.chat.id,
                                         call.message.message_id,
