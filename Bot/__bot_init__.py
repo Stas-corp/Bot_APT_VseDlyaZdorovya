@@ -1,17 +1,24 @@
+import asyncio
 import aiogram 
-from aiogram.types import KeyboardButton, InlineKeyboardButton
+from aiogram.types import KeyboardButton, InlineKeyboardButton, BotCommand
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import __token__
-import google_sheet_connect
-import json_manager
+import Managers.google_sheet_manager as google_sheet_manager
+import Managers.json_manager as json_manager
 
 bot = aiogram.Bot(__token__.TOKEN)
-SheetManager = google_sheet_connect.Sheet_Manager()
+dp = aiogram.Dispatcher()
+SheetManager = google_sheet_manager.Sheet_Manager()
 JsonManager = json_manager.Manager()
 admin_chat_ids = SheetManager.get_admins_id()
 # print(admin_chat_ids)
+
+# async def set_bot_commands():
+#     comands = [BotCommand(command='/start', description='Головне меню'),
+#                BotCommand(command='/user', description='Інформація про мене')]
+#     await bot.set_my_commands(comands)
 
 '''__________InlineKeyboardButtons__________'''
 inl_btn_order = InlineKeyboardButton(

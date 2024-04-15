@@ -1,14 +1,8 @@
 import asyncio
 
-from aiogram import F
-from aiogram import Dispatcher, types
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.context import FSMContext
-from aiogram.filters import CommandStart, Command
+from aiogram import F, types
 
 import __bot_init__ as b_init
-import admins_keyboard as adm_kb
-import user_init
 
 bot = b_init.bot
 

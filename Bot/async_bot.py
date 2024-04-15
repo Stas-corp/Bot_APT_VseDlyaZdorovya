@@ -1,7 +1,6 @@
 import asyncio
 
-from aiogram import F
-from aiogram import Dispatcher, types
+from aiogram import F, types
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart, Command
@@ -10,10 +9,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import __bot_init__ as b_init
 import admins_keyboard as adm_kb
 import user_init
-import chat_manager
+import Managers.chat_manager as chat_manager
 
 bot = b_init.bot
-dp = Dispatcher()
+dp = b_init.dp
 JsonManager = b_init.JsonManager
 admin_chat_ids = b_init.admin_chat_ids
 ChatManager = chat_manager.ChatManager()
@@ -68,6 +67,17 @@ async def send_welcome(mess: types.Message, state: FSMContext):
                             reply_markup=b_init.rpl_builder)
     else:
         await order_mess(mess, mess.from_user.id)
+
+@dp.message(Command('user'))
+async def user_comand(mess: types.Message, state: FSMContext):
+    if JsonManager.login_user(str(mess.from_user.id)):
+        data = JsonManager._load_data()
+        message = ''
+        for key, value in data[str(mess.from_user.id)].items():
+            message += f'{key} - {value}\n'
+        await mess.reply(message)
+    else:
+        await send_welcome(mess, state)
 
 @dp.message(F.contact, Form.no_contact)
 async def get_contac(mess: types.Message, state: FSMContext):
