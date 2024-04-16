@@ -7,7 +7,7 @@ import __bot_init__ as b_init
 bot = b_init.bot
 
 class ChatManager:
-    def __init__(self):    
+    def __init__(self) -> None:    
         self.admin_id: int
         self.client_id: int
 

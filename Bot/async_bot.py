@@ -1,34 +1,21 @@
 import asyncio
 
 from aiogram import F, types
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from __bot_init__ import Form
 import __bot_init__ as b_init
 import admins_keyboard as adm_kb
-import user_init
 import Managers.chat_manager as chat_manager
+from delivery_order_dp import callback_order_delivery
 
 bot = b_init.bot
 dp = b_init.dp
 JsonManager = b_init.JsonManager
 admin_chat_ids = b_init.admin_chat_ids
 ChatManager = chat_manager.ChatManager()
-
-class Form(StatesGroup):
-    no_contact = State()
-    order = State()
-    order_await = State()
-    order_processing = State()
-    set_adress = State()
-    check_adress = State()
-    save_adress = State()
-    runUp_consultation = State()
-    '''preparation for the consultation process'''
-    during_consultation = State()
-    '''consultation process'''
     
 async def order_mess(mess: types.Message, user_id: int):
     message = 'Я можу у тебе прийняти бронь на ліки та надати можливисть задати питання фахівцю!'
@@ -47,7 +34,7 @@ async def save_adress(mess: types.Message, state: FSMContext):
 
 @dp.message(Command('adm'), F.from_user.id.in_(admin_chat_ids))
 async def get_auth_user(mess: types.Message):
-    data = JsonManager._load_data()
+    data = JsonManager._get_data_()
     print(data)
     message = ''
     for key, user in data.items():
@@ -71,7 +58,7 @@ async def send_welcome(mess: types.Message, state: FSMContext):
 @dp.message(Command('user'))
 async def user_comand(mess: types.Message, state: FSMContext):
     if JsonManager.login_user(str(mess.from_user.id)):
-        data = JsonManager._load_data()
+        data = JsonManager._get_data_()
         message = ''
         for key, value in data[str(mess.from_user.id)].items():
             message += f'{key} - {value}\n'
@@ -98,21 +85,13 @@ async def get_contac(mess: types.Message, state: FSMContext):
     await bot.send_message(mess.chat.id,
                            message,
                            reply_markup=types.ReplyKeyboardRemove())
-    # await asyncio.sleep(1)
     await order_mess(mess, mess.chat.id)
 
 @dp.message(Form.set_adress)
 async def set_adress(mess: types.Message, state: FSMContext):
-    # data = JsonManager._load_data()
-    # user_adress = JsonManager.get_adress(str(mess.from_user.id))
-    # if user_adress is None:
     message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку по житловому комплексу:\n(вулиця, будинок, під'їзд, поверх, квартира)"
     await bot.send_message(mess.from_user.id, message)
     await state.set_state(Form.save_adress)
-    # else:
-    #     await state.update_data(adress=user_adress)
-    #     await state.set_state(Form.order)
-    #     await order_received(mess, state)
 
 @dp.message(Form.check_adress)
 async def check_adress(mess: types.Message, state: FSMContext):
@@ -135,7 +114,7 @@ async def order_received(mess: types.Message, state: FSMContext):
     user_data = await state.get_data()
     admin_message = f"id:{mess.from_user.id}\nКлієнт: @{mess.from_user.username}\nІм'я: {mess.from_user.full_name}\n📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n\n{user_data['medicament']}"
     for id_adm in admin_chat_ids:
-        data = JsonManager._load_data()
+        data = JsonManager._get_data_()
         # print(mess)
         user_number = data[str(mess.from_user.id)]['number']
         await bot.send_contact(chat_id=id_adm,
@@ -154,7 +133,7 @@ async def order_received(mess: types.Message, state: FSMContext):
 async def runUp_consultation(mess: types.Message, state: FSMContext):
     admin_message = f"id:{mess.from_user.id}\nКлієнт: @{mess.from_user.username}\nІм'я: {mess.from_user.full_name}\nЗапит від клієнта: \n\n{mess.text}"
     for id_adm in admin_chat_ids:
-        data = JsonManager._load_data()
+        data = JsonManager._get_data_()
         user_number = data[str(mess.from_user.id)]['number']
         await bot.send_contact(chat_id=id_adm,
                                phone_number=user_number,
@@ -192,29 +171,41 @@ async def during_consultation(mess: types.Message, state: FSMContext):
         ChatManager.clear_id_chating()
     else:
         await ChatManager.chating(mess)
-    
+
+
+"""
+***********************************************************
+************************ CaLL_BACK ************************
+***********************************************************
+"""
 @dp.callback_query(lambda call: call.data.startswith('cli'))
 async def callback_client(call: types.CallbackQuery, state: FSMContext):
     # print('cli_handler')
+    await bot.edit_message_reply_markup(call.message.chat.id,
+                                        call.message.message_id,
+                                        reply_markup=None)
+
     if call.data == b_init.inl_btn_order.callback_data:
-        message = '''Створення замовлення для доставки по ЖК 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'''
-        await bot.send_message(call.from_user.id, text=message)
+        message = 'Створення замовлення для доставки по ЖК 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'
+        await bot.send_message(call.from_user.id, 
+                               text=message)
         await state.set_state(Form.check_adress)
         await bot.answer_callback_query(call.id)
 
     if call.data == b_init.inl_btn_consultation.callback_data:
-        message = f'''Запит на комунікацію 📨\n\nВведіть ваше запитання і очікуйте відповіді від фахівця!'''
-        await bot.send_message(call.from_user.id, text=message)
+        message = 'Запит на комунікацію 📨\n\nВведіть ваше запитання і очікуйте відповіді від фахівця!'
+        await bot.send_message(call.from_user.id, 
+                               text=message)
         await state.set_state(Form.runUp_consultation)
         await bot.answer_callback_query(call.id)
 
-    if call.data == b_init.inl_btn_save_adress.callback_data:
+    if await state.get_state() == Form.save_adress and call.data == b_init.inl_btn_save_adress.callback_data:
         previous_message = call.message.reply_to_message
         JsonManager.add_adress(str(call.from_user.id), previous_message.text)
         await state.set_state(Form.order)
         await order_received(previous_message, state)
 
-    if call.data == b_init.inl_btn_not_save_adress.callback_data:
+    if await state.get_state() == Form.save_adress and call.data == b_init.inl_btn_not_save_adress.callback_data:
         previous_message = call.message.reply_to_message
         await state.set_state(Form.order)
         await order_received(previous_message, state)
@@ -229,9 +220,7 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
         await state.set_state(Form.set_adress)
         await set_adress(previous_message, state)
 
-    await bot.edit_message_reply_markup(call.message.chat.id,
-                                        call.message.message_id,
-                                        reply_markup=None)
+    await callback_order_delivery(call, state)
 
 @dp.callback_query(lambda call: call.data.startswith('adm'))
 async def callback_admin(call: types.CallbackQuery, state: FSMContext):

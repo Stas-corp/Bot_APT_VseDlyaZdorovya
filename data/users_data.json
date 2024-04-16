@@ -2,7 +2,7 @@
     "865347751": {
         "id": 865347751,
         "username": "d2body16m",
-        "first_name": "\u043f\u0435\u0442\u0443\u0445 \u043f\u0440\u0430\u0432\u0438\u043b\u043e",
+        "first_name": "петух правило",
         "last_name": null,
         "number": "380665473255"
     },
@@ -12,7 +12,7 @@
         "first_name": "Alla",
         "last_name": "Voitenko",
         "number": "380633568691",
-        "adress": "\u041f\u0440\u043e\u0441\u043f\u0435\u043a\u0442 \u0427\u0435\u0440\u0432\u043e\u043d\u043e\u0457 \u043a\u0430\u043b\u0438\u043d\u0438, 81\u0430"
+        "adress": "Проспект Червоної калини, 81а"
     },
     "5475803346": {
         "id": 5475803346,
@@ -38,14 +38,14 @@
     "5105940014": {
         "id": 5105940014,
         "username": null,
-        "first_name": "\u0410\u0440\u0442\u0443\u0440",
+        "first_name": "Артур",
         "last_name": null,
         "number": "380679181782"
     },
     "1560098801": {
         "id": 1560098801,
         "username": "h0udie",
-        "first_name": "_\u210d\u01fe\u2119E \u016a \u010e\u2671E_",
+        "first_name": "_ℍǾℙE Ū Ď♱E_",
         "last_name": null,
         "number": "380961684777"
     },
@@ -66,21 +66,21 @@
     "523088876": {
         "id": 523088876,
         "username": "TURB0_5USHKA",
-        "first_name": "\u0421\u0442\u0430\u0441",
-        "last_name": "\u041a\u043e\u0441\u043c\u0438\u0447\u0435\u0441\u043a\u0438\u0439",
+        "first_name": "Стас",
+        "last_name": "Космический",
         "number": "+380661366855"
     },
     "606490232": {
         "id": 606490232,
         "username": "VitaliiSapan",
-        "first_name": "\u0412\u0438\u0442\u0430\u043b\u0438\u0439",
-        "last_name": "\u0421\u0430\u043f\u0430\u043d",
+        "first_name": "Виталий",
+        "last_name": "Сапан",
         "number": "380952825612"
     },
     "5336199027": {
         "id": 5336199027,
         "username": null,
-        "first_name": "\u0421\u0432\u0456\u0442\u043b\u0430\u043d\u0430",
+        "first_name": "Світлана",
         "last_name": null,
         "number": "380974629272"
     },
@@ -90,12 +90,14 @@
         "first_name": "Den_Don",
         "last_name": null,
         "number": "+380953204318",
-        "adress": "qqq"
+        "adress": "qqq",
+        "full_name": "qqqqqq",
+        "adress_np": "Київ, Салютна, №100"
     },
     "349281011": {
         "id": 349281011,
         "username": "mikekvyatkovsky",
-        "first_name": "m \ud83c\udfdb\ud83e\udd84\ud83d\udc1d",
+        "first_name": "m 🏛🦄🐝",
         "last_name": null,
         "number": "79897168765"
     }
