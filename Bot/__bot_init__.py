@@ -8,11 +8,13 @@ from aiogram.fsm.state import State, StatesGroup
 import __token__
 import Managers.google_sheet_manager as google_sheet_manager
 import Managers.json_manager as json_manager
+import Managers.order_manager as order_manager
 
 bot = aiogram.Bot(__token__.TOKEN)
 dp = aiogram.Dispatcher()
 SheetManager = google_sheet_manager.Sheet_Manager()
 JsonManager = json_manager.Manager()
+OrderManager = order_manager.Manager()
 admin_chat_ids = SheetManager.get_admins_id()
 
 class Form(StatesGroup):
@@ -23,6 +25,7 @@ class Form(StatesGroup):
     set_adress = State()
     set_full_name = State()
     check_full_name = State()
+    save_full_name = State()
     check_adress = State()
     save_adress = State()
     check_np_adress = State()

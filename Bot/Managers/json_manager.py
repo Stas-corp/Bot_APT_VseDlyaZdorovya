@@ -2,14 +2,17 @@ import json
 import os
 
 class Manager:
-    def __init__(self) -> None:
-        self.file_path = 'data/users_data.json'
+    def __init__(self, file_path = 'data/users_data.json') -> None:
+        self.file_path = file_path
         self.check_path()
 
     def check_path(self):
         directory = os.path.dirname(self.file_path)
+        print(self.file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
+        if not os.path.exists(self.file_path):
+            self.__save_data__({})
     
     def login_user(self, user_id: str) -> bool:
         '''Checks the user in the database'''
@@ -76,13 +79,13 @@ class Manager:
         else:
             return None
 
-    def add_user(self, user_data: dict):
+    def add_data(self, user_data: dict):
         data = self._get_data_()
         key = list(user_data.keys())[0]
         # print(f'_______data_json_______\n{data}')
-        print('_______NEW USER_______')
-        print(f'_______key_______\n{key}')
-        print(f'_______user_data_______\n{user_data}')
+        # print('_______NEW USER_______')
+        # print(f'_______key_______\n{key}')
+        # print(f'_______user_data_______\n{user_data}')
         if not key in data:
             data[key] = user_data[key]
             self.__save_data__(data)

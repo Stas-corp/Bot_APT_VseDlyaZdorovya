@@ -64,6 +64,15 @@ async def set_full_name(mess: types.Message, state: FSMContext):
     await bot.send_message(mess.from_user.id, message)
     await state.set_state(Form.check_np_adress)
 
+@dp.message(Form.save_full_name)    
+async def save_full_name(mess: types.Message, state: FSMContext):
+    save_full_name
+    message = "Зберегти ваше ім'я для наступних замовлень?"
+    keyboard = InlineKeyboardBuilder()
+    keyboard.row(b_init.inl_btn_save, b_init.inl_btn_not_save, width=1)
+    await mess.reply(message,
+                     reply_markup=keyboard.as_markup())
+
 @dp.message(Form.save_np_adress)    
 async def save_adress(mess: types.Message, state: FSMContext):
     await state.update_data(adress=mess.text)
