@@ -20,13 +20,14 @@ async def set_order_data(call: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     await bot.send_message(call.from_user.id,
                            '⏳')
-    await SheetManager.writing_np_order(str(call.from_user.id),
+    await SheetManager.writing_order(SheetManager.salutna_delivery_sheet,
+                                        str(call.from_user.id),
                                         call.from_user.username,
                                         JsonManager.get_phone_number(str(call.from_user.id)),
                                         user_data['full_name'],
                                         user_data['medicament'],
                                         user_data['adress'])
-    admin_message = f"id:{call.from_user.id}\nКлієнт: @{call.from_user.username}\nІм'я: {call.from_user.full_name}\n📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n{user_data['medicament']}\n\n❗️❗️❗️ДОСТАВКА НОВА ПОШТА❗️❗️❗️"
+    admin_message = f"id:{call.from_user.id}\nКлієнт: @{call.from_user.username}\nІм'я в ТГ: {call.from_user.full_name}\nПовне ім'я: {user_data['full_name']}📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n{user_data['medicament']}\n\n❗️❗️❗️ДОСТАВКА НОВА ПОШТА❗️❗️❗️"
     for id_adm in b_init.admin_chat_ids:
         user_number = JsonManager.get_phone_number(str(call.from_user.id))
         # print(mess)
@@ -44,12 +45,31 @@ async def set_order_data(call: types.CallbackQuery, state: FSMContext):
                            client_message)
     # await state.set_state(Form.order_await) # НАДО ПОДУМАТЬ НАД СТАТУСОМ!
 
+@dp.message(Form.check_full_name)
+async def check_full_name(mess: types.Message, state: FSMContext):
+    await state.update_data(medicament=mess.text)
+    user_full_name = JsonManager.get_full_name(str(mess.from_user.id))
+    if user_full_name is None:
+        await state.set_state(Form.set_full_name)
+        await set_full_name(mess, state)
+    else:
+        await state.update_data(full_name=user_full_name)
+        message = f"Доставку робимо на це ім'я?\n📍Ім'я: {user_full_name}"
+        await mess.reply(message,
+                         reply_markup=b_init.accept_user_adress.as_markup())
+
+@dp.message(Form.set_full_name)
+async def set_full_name(mess: types.Message, state: FSMContext):
+    message = f'Принято!\n\nТепер вкажіть ПІБ отримувача на новій пошті:'
+    await bot.send_message(mess.from_user.id, message)
+    await state.set_state(Form.check_np_adress)
+
 @dp.message(Form.save_np_adress)    
 async def save_adress(mess: types.Message, state: FSMContext):
     await state.update_data(adress=mess.text)
     message = 'Зберегти вашу адресу 📍 для наступних замовлень?'
     keyboard = InlineKeyboardBuilder()
-    keyboard.row(b_init.inl_btn_save_adress, b_init.inl_btn_not_save_adress, width=1)
+    keyboard.row(b_init.inl_btn_save, b_init.inl_btn_not_save, width=1)
     await mess.reply(message,
                      reply_markup=keyboard.as_markup())
     
@@ -58,13 +78,6 @@ async def set_adress(mess: types.Message, state: FSMContext):
     message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку Новою Поштою:\n(Місто, № віділення НП, адреса віділення)"
     await bot.send_message(mess.from_user.id, message)
     await state.set_state(Form.save_np_adress)
-
-@dp.message(Form.set_full_name)
-async def set_full_name(mess: types.Message, state: FSMContext):
-    await state.update_data(medicament=mess.text)
-    message = f'Принято!\n\nТепер вкажіть ПІБ отримувача на новій пошті:'
-    await bot.send_message(mess.from_user.id, message)
-    await state.set_state(Form.check_np_adress)
 
 @dp.message(Form.check_np_adress)
 async def check_np_adress(mess: types.Message, state: FSMContext):
@@ -96,28 +109,39 @@ async def callback_order_delivery(call: types.CallbackQuery, state: FSMContext):
         message = 'Створюємо замовлення для доставки Новою Поштою 📦\n\nВведіть назву препарату:'
         await bot.send_message(call.from_user.id,
                                text=message)
-        await state.set_state(Form.set_full_name)
+        await state.set_state(Form.check_full_name)
         await bot.answer_callback_query(call.id)
 
     if await state.get_state() == Form.save_np_adress:
-        if call.data == b_init.inl_btn_save_adress.callback_data:
+        if call.data == b_init.inl_btn_save.callback_data:
             previous_message = call.message.reply_to_message
             JsonManager.add_np_adress(str(call.from_user.id), previous_message.text)
             await state.set_state(Form.order)
             await set_order_data(call, state)
 
-        if call.data == b_init.inl_btn_not_save_adress.callback_data:
+        if call.data == b_init.inl_btn_not_save.callback_data:
             previous_message = call.message.reply_to_message
             await state.set_state(Form.order)
             await set_order_data(call, state)
 
     if await state.get_state() == Form.check_np_adress:
-        if call.data == b_init.inl_accept_adress_yes.callback_data:
+        if call.data == b_init.inl_accept_yes.callback_data:
             previous_message = call.message.reply_to_message
             await state.set_state(Form.order)
             await set_order_data(call, state)
 
-        if call.data == b_init.inl_accept_adress_no.callback_data:
+        if call.data == b_init.inl_accept_no.callback_data:
             previous_message = call.message.reply_to_message
             await state.set_state(Form.set_adress)
             await set_adress(previous_message, state)
+
+    if await state.get_state() == Form.check_full_name:
+        if call.data == b_init.inl_accept_yes.callback_data:
+            previous_message = call.message.reply_to_message
+            await state.set_state(Form.check_np_adress)
+            await check_np_adress(call, state)
+
+        if call.data == b_init.inl_accept_no.callback_data:
+            previous_message = call.message.reply_to_message
+            await state.set_state(Form.set_full_name)
+            await set_full_name(previous_message, state)

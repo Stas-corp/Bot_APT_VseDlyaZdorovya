@@ -17,6 +17,7 @@ class Sheet_Manager:
 
         self.user_auto_sheet = self.spreadsheet.worksheet('admin_users')
         self.np_delivery_sheet = self.spreadsheet.worksheet('NP_Delivery')
+        self.salutna_delivery_sheet = self.spreadsheet.worksheet('Salutna_Delivery')
 
     def get_admins_id(self):
         admins = self.user_auto_sheet.get_all_records()
@@ -40,19 +41,19 @@ class Sheet_Manager:
         
         # print(await self._print_data_from_sheet(table))
 
-    async def writing_np_order(self, user_id: str, user_name: str, phone_number: str, full_name: str, order: str, np_address: str):
-        data = [user_id, user_name, phone_number, full_name, order, np_address]
-        user_auto_values = self.np_delivery_sheet.get_all_values()
+    async def writing_order(self, sheet: Worksheet, user_id: str, user_name: str, phone_number: str, full_name: str, order: str, address: str):
+        data = [user_id, user_name, phone_number, full_name, order, address]
+        user_auto_values = sheet.get_all_values()
         last_record = len(user_auto_values)
 
         for i, cell_data in enumerate(data):
-            self.np_delivery_sheet.update_cell(last_record + 1, i + 1, cell_data)
+            sheet.update_cell(last_record + 1, i + 1, cell_data)
 
-        await self._print_data_from_sheet(self.np_delivery_sheet)
+        # await self._print_data_from_sheet(self.np_delivery_sheet)
 
 async def main():
     sm = Sheet_Manager()
-    await sm.writing_np_order('1123','11333','1132','1123','1123','11323')
+    await sm.writing_order('1123','11333','1132','1123','1123','11323')
     # await sm.writing_data(sm.np_delivery_sheet, ['1','1','1','1','1','1'])
     # await sm._print_data_from_sheet(sm.np_delivery_sheet)
     # for index, item in enumerate(['1123','11333','1132','1123','1123','11323']):

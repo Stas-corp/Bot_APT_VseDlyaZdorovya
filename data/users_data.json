@@ -12,7 +12,8 @@
         "first_name": "Alla",
         "last_name": "Voitenko",
         "number": "380633568691",
-        "adress": "Проспект Червоної калини, 81а"
+        "adress": "Проспект Червоної калини, 81а",
+        "full_name": "Швльв"
     },
     "5475803346": {
         "id": 5475803346,
@@ -68,7 +69,9 @@
         "username": "TURB0_5USHKA",
         "first_name": "Стас",
         "last_name": "Космический",
-        "number": "+380661366855"
+        "number": "+380661366855",
+        "full_name": "Самойлов Станіслав Олексійович",
+        "adress_np": "Київ, №190, Блабла"
     },
     "606490232": {
         "id": 606490232,
@@ -90,7 +93,7 @@
         "first_name": "Den_Don",
         "last_name": null,
         "number": "+380953204318",
-        "adress": "qqq",
+        "adress": "Салютна, 7, 7, 7, 7",
         "full_name": "qqqqqq",
         "adress_np": "Київ, Салютна, №100"
     },

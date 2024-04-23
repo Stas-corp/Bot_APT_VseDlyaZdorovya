@@ -67,6 +67,14 @@ class Manager:
             return data[user_id]['adress_np']
         else:
             return None
+        
+    def get_full_name(self, user_id: str) -> str | None:
+        '''Return user full name or Note'''
+        data = self._get_data_()
+        if self.login_user(user_id) and data[user_id].get('full_name') is not None:
+            return data[user_id]['full_name']
+        else:
+            return None
 
     def add_user(self, user_data: dict):
         data = self._get_data_()
@@ -84,3 +92,4 @@ if __name__ == '__main__':
     mng = Manager()
     print(mng.get_adress('5493395971'))
     print(mng.get_phone_number('5493395977'))
+    print(mng.get_full_name('656334227'))

@@ -13,8 +13,9 @@ from delivery_order_dp import callback_order_delivery
 
 bot = b_init.bot
 dp = b_init.dp
-JsonManager = b_init.JsonManager
 admin_chat_ids = b_init.admin_chat_ids
+JsonManager = b_init.JsonManager
+SheetManager = b_init.SheetManager
 ChatManager = chat_manager.ChatManager()
     
 async def order_mess(mess: types.Message, user_id: int):
@@ -28,7 +29,7 @@ async def save_adress(mess: types.Message, state: FSMContext):
     await state.update_data(adress=mess.text)
     message = 'Зберегти вашу адресу 📍 для наступних замовлень?'
     keyboard = InlineKeyboardBuilder()
-    keyboard.row(b_init.inl_btn_save_adress, b_init.inl_btn_not_save_adress, width=1)
+    keyboard.row(b_init.inl_btn_save, b_init.inl_btn_not_save, width=1)
     await mess.reply(message,
                      reply_markup=keyboard.as_markup())
 
@@ -111,12 +112,12 @@ async def check_adress(mess: types.Message, state: FSMContext):
 @dp.message(Form.order)
 async def order_received(mess: types.Message, state: FSMContext):
     # await state.update_data(adress=mess.text)
+    data = JsonManager._get_data_()
+    user_number = data[str(mess.from_user.id)]['number']
     user_data = await state.get_data()
-    admin_message = f"id:{mess.from_user.id}\nКлієнт: @{mess.from_user.username}\nІм'я: {mess.from_user.full_name}\n📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n\n{user_data['medicament']}"
+    admin_message = f"id:{mess.from_user.id}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n\n{user_data['medicament']}"
     for id_adm in admin_chat_ids:
-        data = JsonManager._get_data_()
         # print(mess)
-        user_number = data[str(mess.from_user.id)]['number']
         await bot.send_contact(chat_id=id_adm,
                                phone_number=user_number,
                                first_name=mess.from_user.first_name,
@@ -199,23 +200,23 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
         await state.set_state(Form.runUp_consultation)
         await bot.answer_callback_query(call.id)
 
-    if await state.get_state() == Form.save_adress and call.data == b_init.inl_btn_save_adress.callback_data:
+    if await state.get_state() == Form.save_adress and call.data == b_init.inl_btn_save.callback_data:
         previous_message = call.message.reply_to_message
         JsonManager.add_adress(str(call.from_user.id), previous_message.text)
         await state.set_state(Form.order)
         await order_received(previous_message, state)
 
-    if await state.get_state() == Form.save_adress and call.data == b_init.inl_btn_not_save_adress.callback_data:
+    if await state.get_state() == Form.save_adress and call.data == b_init.inl_btn_not_save.callback_data:
         previous_message = call.message.reply_to_message
         await state.set_state(Form.order)
         await order_received(previous_message, state)
 
-    if await state.get_state() == Form.check_adress and call.data == b_init.inl_accept_adress_yes.callback_data:
+    if await state.get_state() == Form.check_adress and call.data == b_init.inl_accept_yes.callback_data:
         previous_message = call.message.reply_to_message
         await state.set_state(Form.order)
         await order_received(previous_message, state)
 
-    if await state.get_state() == Form.check_adress and call.data == b_init.inl_accept_adress_no.callback_data:
+    if await state.get_state() == Form.check_adress and call.data == b_init.inl_accept_no.callback_data:
         previous_message = call.message.reply_to_message
         await state.set_state(Form.set_adress)
         await set_adress(previous_message, state)
@@ -242,6 +243,7 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_accept_order.callback_data:
+        
         client_message = 'Ваше замовлення підтверджено✅\nОчікуйте на доставку!'
         client_id = call.message.text.split()[0][3:]
         await bot.send_message(client_id, client_message)
@@ -255,6 +257,13 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
                                     call.message.message_id,
                                     reply_markup=keyboard.as_markup())
         await bot.answer_callback_query(call.id)
+        await SheetManager.writing_order(SheetManager.salutna_delivery_sheet,
+                                   client_id,
+                                   '-',
+                                   '-',
+                                   '-',
+                                   '-',
+                                   '-')
 
     if call.data == adm_kb.inl_btn_acept_delivery.callback_data:
         client_message = 'Ваше замовлення було доставлено! 📦\n\nДякую що обераєте нас!'
