@@ -1,10 +1,12 @@
 from datetime import datetime
 
-from Managers.json_manager import Manager as JsonManager
+from json_manager import Manager as JsonManager
 
 class Manager:
+
+    __file_path__ = 'data/users_order.json'
+
     def __init__(self):
-        self.__file_path__ = 'data/users_order.json'
         self.order_id = str
         self.user_id: str
         self.delivery_type: str
@@ -32,6 +34,8 @@ class Manager:
         else:
             self.order_id = str(int(max(data.keys(), key=int)) + 1)
         print(self.order_id)
+        data[self.order_id] = self.__dict__
+        JsonManager(file_path=self.__file_path__).__save_data__(data)
 
 if __name__ == '__main__':
     mng = Manager()
