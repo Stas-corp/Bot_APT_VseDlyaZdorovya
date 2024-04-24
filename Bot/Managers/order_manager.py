@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from json_manager import Manager as JsonManager
+from Managers.json_manager import Manager as JsonManager
 
 class Manager:
     def __init__(self):
