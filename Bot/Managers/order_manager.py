@@ -1,26 +1,26 @@
 from datetime import datetime
 
-from json_manager import Manager as JsonManager
+from Managers.json_manager import Manager as JsonManager
 
 class Manager:
 
     __file_path__ = 'data/users_order.json'
 
     def __init__(self):
-        self.order_id = str
-        self.user_id: str
-        self.delivery_type: str
-        self.user_name: str
-        self.user_fullname: str
-        self.phone_number: str
-        self.order: str
-        self.adress: str
-        self.date: str
+        self.order_id = 'None'
+        self.user_id = 'None'
+        self.delivery_type = 'None'
+        self.user_name = 'None'
+        self.user_fullname = 'None'
+        self.phone_number = 'None'
+        self.order = 'None'
+        self.adress = 'None'
+        self.date = 'None'
         self.order_completed = False
 
     def update_property(self, **kwargs) -> None:
         ''':param kwargs: property_name=value'''
-        for prop_name, value in kwargs:
+        for prop_name, value in kwargs.items():
             if hasattr(self, prop_name):
                 setattr(self, prop_name, value)
             else:
@@ -39,4 +39,5 @@ class Manager:
 
 if __name__ == '__main__':
     mng = Manager()
+    mng.update_property(adress='qwe')
     mng.order_create()

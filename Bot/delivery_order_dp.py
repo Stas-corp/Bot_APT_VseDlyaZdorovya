@@ -1,15 +1,11 @@
 import asyncio
 
 from aiogram import F, types
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from __bot_init__ import Form
 import __bot_init__ as b_init
-import admins_keyboard as adm_kb
-import Managers.chat_manager as chat_manager
 
 bot = b_init.bot
 dp = b_init.dp
@@ -20,7 +16,7 @@ async def set_order_data(call: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     await bot.send_message(call.from_user.id,
                            '⏳')
-    await SheetManager.writing_order(SheetManager.salutna_delivery_sheet,
+    await SheetManager.writing_order(SheetManager.np_delivery_sheet,
                                         str(call.from_user.id),
                                         call.from_user.username,
                                         JsonManager.get_phone_number(str(call.from_user.id)),
@@ -106,11 +102,12 @@ async def check_np_adress(mess: types.Message, state: FSMContext):
         await mess.reply(message,
                          reply_markup=b_init.accept_user_adress.as_markup())
 
-
 """
+***********************************************************
 ************************ CaLL_BACK ************************
+***********************************************************
 """
-async def callback_order_delivery(call: types.CallbackQuery, state: FSMContext):
+async def callback_order_delivery_np(call: types.CallbackQuery, state: FSMContext):
     if call.data == b_init.inl_btn_delivery.callback_data:
         message = 'Як бажаєте створити замовлення?'
         await bot.send_message(call.from_user.id,
@@ -126,16 +123,14 @@ async def callback_order_delivery(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
 
     if await state.get_state() == Form.save_np_adress:
+        previous_message = call.message.reply_to_message
         if call.data == b_init.inl_btn_save.callback_data:
-            previous_message = call.message.reply_to_message
             JsonManager.add_np_adress(str(call.from_user.id), previous_message.text)
-            await state.set_state(Form.order)
-            await set_order_data(call, state)
 
         if call.data == b_init.inl_btn_not_save.callback_data:
-            previous_message = call.message.reply_to_message
-            await state.set_state(Form.order)
-            await set_order_data(call, state)
+            pass
+        await state.set_state(Form.order)
+        await set_order_data(call, state)
 
     if await state.get_state() == Form.save_full_name:
         previous_message = call.message.reply_to_message
@@ -147,13 +142,12 @@ async def callback_order_delivery(call: types.CallbackQuery, state: FSMContext):
         await check_np_adress(previous_message, state)
 
     if await state.get_state() == Form.check_np_adress:
+        previous_message = call.message.reply_to_message
         if call.data == b_init.inl_accept_yes.callback_data:
-            previous_message = call.message.reply_to_message
             await state.set_state(Form.order)
             await set_order_data(call, state)
 
         if call.data == b_init.inl_accept_no.callback_data:
-            previous_message = call.message.reply_to_message
             await state.set_state(Form.set_adress)
             await set_adress(previous_message, state)
 
