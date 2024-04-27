@@ -17,7 +17,7 @@ dp = b_init.dp
 admin_chat_ids = b_init.admin_chat_ids
 JsonManager = b_init.JsonManager
 SheetManager = b_init.SheetManager
-OrderManager = b_init.OrderManager
+# OrderManager = b_init.OrderManager
 ChatManager = chat_manager.ChatManager()
 
 @dp.message(F.contact, Form.no_contact)

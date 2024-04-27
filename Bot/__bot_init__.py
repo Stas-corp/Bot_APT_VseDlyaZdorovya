@@ -14,7 +14,7 @@ bot = aiogram.Bot(__token__.TOKEN)
 dp = aiogram.Dispatcher()
 SheetManager = google_sheet_manager.Sheet_Manager()
 JsonManager = json_manager.Manager()
-OrderManager = order_manager.Manager()
+# OrderManager = order_manager.Manager()
 admin_chat_ids = SheetManager.get_admins_id()
 
 class Form(StatesGroup):

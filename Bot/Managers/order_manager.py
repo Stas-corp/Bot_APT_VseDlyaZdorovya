@@ -6,9 +6,9 @@ class Manager:
 
     __file_path__ = 'data/users_order.json'
 
-    def __init__(self):
+    def __init__(self, user_id: str):
+        self.user_id = user_id
         self.order_id = 'None'
-        self.user_id = 'None'
         self.delivery_type = 'None'
         self.user_name = 'None'
         self.user_fullname = 'None'
