@@ -34,15 +34,16 @@ class Manager:
             self.order_id = '1'
         else:
             self.order_id = str(int(max(data.keys(), key=int)) + 1)
+        self.order_create()
         return self.order_id
-
+    
     def order_create(self) -> None:
         data = JsonManager(file_path=self.__file_path__)._get_data_()
         data[self.order_id] = self.__dict__
         print(self.__dict__)
         JsonManager(file_path=self.__file_path__).__save_data__(data)
-        self.clear_all_properties()
-        print(self.__dict__)
+        # self.clear_all_properties()
+        # print(self.__dict__)
 
     def clear_all_properties(self):
         for attr in dir(self):
