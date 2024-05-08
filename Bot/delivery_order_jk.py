@@ -16,35 +16,35 @@ admin_chat_ids = b_init.admin_chat_ids
 JsonManager = b_init.JsonManager
 SheetManager = b_init.SheetManager
 
-@dp.message(Form.check_adress)
-async def check_adress(mess: types.Message, state: FSMContext):
+@dp.message(Form.check_address)
+async def check_address(mess: types.Message, state: FSMContext):
     await state.update_data(medicament=mess.text.lower())
     data = await state.get_data()
     order = data['order']
     order.update_property(order=mess.text.lower())
-    user_adress = JsonManager.get_adress(str(mess.from_user.id))
-    if user_adress is None:
-        await state.set_state(Form.set_adress)
-        await set_adress(mess, state)
+    user_address = JsonManager.get_address(str(mess.from_user.id))
+    if user_address is None:
+        await state.set_state(Form.set_address)
+        await set_address(mess, state)
     else:
-        await state.update_data(adress=user_adress)
-        order.update_property(adress=user_adress)
-        message = f'Доставку робимо на цей адрес?\n📍Адреса: {user_adress}'
+        await state.update_data(address=user_address)
+        order.update_property(address=user_address)
+        message = f'Доставку робимо на цей адрес?\n📍Адреса: {user_address}'
         await mess.reply(message,
-                         reply_markup=b_init.accept_user_adress.as_markup())
+                         reply_markup=b_init.accept_user_address.as_markup())
 
-@dp.message(Form.set_adress)
-async def set_adress(mess: types.Message, state: FSMContext):
+@dp.message(Form.set_address)
+async def set_address(mess: types.Message, state: FSMContext):
     message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку по житловому комплексу:\n(вулиця, будинок, під'їзд, поверх, квартира)"
     await bot.send_message(mess.from_user.id, message)
-    await state.set_state(Form.save_adress)
+    await state.set_state(Form.save_address)
 
-@dp.message(Form.save_adress)    
-async def save_adress(mess: types.Message, state: FSMContext):
+@dp.message(Form.save_address)    
+async def save_address(mess: types.Message, state: FSMContext):
     data = await state.get_data()
     order = data['order']
-    await state.update_data(adress=mess.text)
-    order.update_property(adress=mess.text)
+    await state.update_data(address=mess.text)
+    order.update_property(address=mess.text)
     message = 'Зберегти вашу адресу 📍 для наступних замовлень?'
     keyboard = InlineKeyboardBuilder()
     keyboard.row(b_init.inl_btn_save, b_init.inl_btn_not_save, width=1)
@@ -55,7 +55,7 @@ async def save_adress(mess: types.Message, state: FSMContext):
 async def order_received(mess: types.Message, state: FSMContext):
     user_data = await state.get_data()
     order = user_data['order']
-    admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order.order_id}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n\n{user_data['medicament']}"
+    admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order.order_id}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {user_data['address']}\n📦 Отриманно нове замовлення:\n\n{user_data['medicament']}"
     for id_adm in admin_chat_ids:
         await bot.send_contact(chat_id=id_adm,
                                phone_number=order.phone_number,
@@ -64,6 +64,12 @@ async def order_received(mess: types.Message, state: FSMContext):
         await bot.send_message(chat_id=id_adm,
                                text=admin_message, 
                                reply_markup=adm_kb.adm_order_builder.as_markup())
+        message = ''
+        for key, value in order.__dict__.items():
+            message += f'{key} - {value}\n'
+        await bot.send_message(chat_id=id_adm,
+                               text=message)
+
     client_message = "Ваше замовлення прийнято 📥\nМи скоро з вами зв'яжемося!"
     await bot.send_message(mess.from_user.id,
                            client_message)
@@ -81,7 +87,7 @@ async def callback_order_delivery_jk(call: types.CallbackQuery, state: FSMContex
         message = 'Створення замовлення для доставки по ЖК 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'
         await bot.send_message(call.from_user.id, 
                                text=message)
-        await state.set_state(Form.check_adress)
+        await state.set_state(Form.check_address)
         await bot.answer_callback_query(call.id)
         order.update_property(
             order_id=order.get_order_number(),
@@ -91,10 +97,10 @@ async def callback_order_delivery_jk(call: types.CallbackQuery, state: FSMContex
             phone_number=JsonManager.get_phone_number(str(call.from_user.id)))
         await state.update_data(order=order)
 
-    if await state.get_state() == Form.save_adress:
+    if await state.get_state() == Form.save_address:
         previous_message = call.message.reply_to_message
         if call.data == b_init.inl_btn_save.callback_data:
-            JsonManager.add_adress(str(call.from_user.id), previous_message.text)
+            JsonManager.add_address(str(call.from_user.id), previous_message.text)
 
         if call.data == b_init.inl_btn_not_save.callback_data:
             pass
@@ -102,12 +108,12 @@ async def callback_order_delivery_jk(call: types.CallbackQuery, state: FSMContex
         await state.set_state(Form.order)
         await order_received(previous_message, state)
 
-    if await state.get_state() == Form.check_adress:
+    if await state.get_state() == Form.check_address:
         previous_message = call.message.reply_to_message
         if call.data == b_init.inl_accept_yes.callback_data:
             await state.set_state(Form.order)
             await order_received(previous_message, state)
 
         if call.data == b_init.inl_accept_no.callback_data:
-            await state.set_state(Form.set_adress)
-            await set_adress(previous_message, state)
+            await state.set_state(Form.set_address)
+            await set_address(previous_message, state)

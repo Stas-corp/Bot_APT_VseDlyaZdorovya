@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from Managers.json_manager import Manager as JsonManager
+from Managers.json_manager import JsonManager
 
 class Manager:
 
@@ -14,7 +14,7 @@ class Manager:
         self.user_fullname = 'None'
         self.phone_number = 'None'
         self.order = 'None'
-        self.adress = 'None'
+        self.address = 'None'
         self.date = 'None'
         self.order_completed = False
 
@@ -52,5 +52,5 @@ class Manager:
 
 if __name__ == '__main__':
     mng = Manager()
-    mng.update_property(adress='qwe')
+    mng.update_property(address='qwe')
     mng.order_create()

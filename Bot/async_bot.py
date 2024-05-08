@@ -127,7 +127,6 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_accept_order.callback_data:
-        
         client_message = 'Ваше замовлення підтверджено✅\nОчікуйте на доставку!'
         client_id = call.message.text.split()[0][3:]
         await bot.send_message(client_id, client_message)

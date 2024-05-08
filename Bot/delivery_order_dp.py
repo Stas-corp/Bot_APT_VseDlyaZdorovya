@@ -22,8 +22,8 @@ async def set_order_data(call: types.CallbackQuery, state: FSMContext):
                                         JsonManager.get_phone_number(str(call.from_user.id)),
                                         user_data['full_name'],
                                         user_data['medicament'],
-                                        user_data['adress'])
-    admin_message = f"id:{call.from_user.id}\nКлієнт: @{call.from_user.username}\nІм'я в ТГ: {call.from_user.full_name}\nПовне ім'я: {user_data['full_name']}\n📍 Адреса: {user_data['adress']}\n📦 Отриманно нове замовлення:\n{user_data['medicament']}\n\n❗️❗️❗️ДОСТАВКА НОВА ПОШТА❗️❗️❗️"
+                                        user_data['address'])
+    admin_message = f"id:{call.from_user.id}\nКлієнт: @{call.from_user.username}\nІм'я в ТГ: {call.from_user.full_name}\nПовне ім'я: {user_data['full_name']}\n📍 Адреса: {user_data['address']}\n📦 Отриманно нове замовлення:\n{user_data['medicament']}\n\n❗️❗️❗️ДОСТАВКА НОВА ПОШТА❗️❗️❗️"
     for id_adm in b_init.admin_chat_ids:
         user_number = JsonManager.get_phone_number(str(call.from_user.id))
         # print(mess)
@@ -54,7 +54,7 @@ async def check_full_name(mess: types.Message, state: FSMContext):
         await state.update_data(full_name=user_full_name)
         message = f"Доставку робимо на це ім'я?\n📍Ім'я: {user_full_name}"
         await mess.reply(message,
-                         reply_markup=b_init.accept_user_adress.as_markup())
+                         reply_markup=b_init.accept_user_address.as_markup())
 
 @dp.message(Form.set_full_name)
 async def set_full_name(mess: types.Message, state: FSMContext):
@@ -71,36 +71,36 @@ async def save_full_name(mess: types.Message, state: FSMContext):
     await mess.reply(message,
                      reply_markup=keyboard.as_markup())
 
-@dp.message(Form.save_np_adress)    
-async def save_adress(mess: types.Message, state: FSMContext):
-    await state.update_data(adress=mess.text)
+@dp.message(Form.save_np_address)    
+async def save_address(mess: types.Message, state: FSMContext):
+    await state.update_data(address=mess.text)
     message = 'Зберегти вашу адресу 📍 для наступних замовлень?'
     keyboard = InlineKeyboardBuilder()
     keyboard.row(b_init.inl_btn_save, b_init.inl_btn_not_save, width=1)
     await mess.reply(message,
                      reply_markup=keyboard.as_markup())
     
-@dp.message(Form.set_adress)
-async def set_adress(mess: types.Message, state: FSMContext):
+@dp.message(Form.set_address)
+async def set_address(mess: types.Message, state: FSMContext):
     message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку Новою Поштою:\n(Місто, № віділення НП, адреса віділення)"
     await bot.send_message(mess.from_user.id, message)
-    await state.set_state(Form.save_np_adress)
+    await state.set_state(Form.save_np_address)
 
-@dp.message(Form.check_np_adress)
-async def check_np_adress(mess: types.Message, state: FSMContext):
+@dp.message(Form.check_np_address)
+async def check_np_address(mess: types.Message, state: FSMContext):
     state_data = await state.get_data()
     if not state_data['mark_full_name']: 
         await state.update_data(full_name=mess.text)
         JsonManager.add_full_name(str(mess.from_user.id), mess.text)
-    user_np_adress = JsonManager.get_np_adress(str(mess.from_user.id))
-    if user_np_adress is None:
-        await state.set_state(Form.set_adress)
-        await set_adress(mess, state)
+    user_np_address = JsonManager.get_np_address(str(mess.from_user.id))
+    if user_np_address is None:
+        await state.set_state(Form.set_address)
+        await set_address(mess, state)
     else:
-        await state.update_data(adress=user_np_adress)
-        message = f'Доставку робимо на цей адрес?\n📍Адреса: {user_np_adress}'
+        await state.update_data(address=user_np_address)
+        message = f'Доставку робимо на цей адрес?\n📍Адреса: {user_np_address}'
         await mess.reply(message,
-                         reply_markup=b_init.accept_user_adress.as_markup())
+                         reply_markup=b_init.accept_user_address.as_markup())
 
 """
 ***********************************************************
@@ -122,10 +122,10 @@ async def callback_order_delivery_np(call: types.CallbackQuery, state: FSMContex
         await state.set_state(Form.check_full_name)
         await bot.answer_callback_query(call.id)
 
-    if await state.get_state() == Form.save_np_adress:
+    if await state.get_state() == Form.save_np_address:
         previous_message = call.message.reply_to_message
         if call.data == b_init.inl_btn_save.callback_data:
-            JsonManager.add_np_adress(str(call.from_user.id), previous_message.text)
+            JsonManager.add_np_address(str(call.from_user.id), previous_message.text)
 
         if call.data == b_init.inl_btn_not_save.callback_data:
             pass
@@ -138,24 +138,24 @@ async def callback_order_delivery_np(call: types.CallbackQuery, state: FSMContex
             JsonManager.add_full_name(str(call.from_user.id), previous_message.text)
         if call.data == b_init.inl_btn_not_save.callback_data:
             pass
-        await state.set_state(Form.check_np_adress)
-        await check_np_adress(previous_message, state)
+        await state.set_state(Form.check_np_address)
+        await check_np_address(previous_message, state)
 
-    if await state.get_state() == Form.check_np_adress:
+    if await state.get_state() == Form.check_np_address:
         previous_message = call.message.reply_to_message
         if call.data == b_init.inl_accept_yes.callback_data:
             await state.set_state(Form.order)
             await set_order_data(call, state)
 
         if call.data == b_init.inl_accept_no.callback_data:
-            await state.set_state(Form.set_adress)
-            await set_adress(previous_message, state)
+            await state.set_state(Form.set_address)
+            await set_address(previous_message, state)
 
     if await state.get_state() == Form.check_full_name:
         previous_message = call.message.reply_to_message
         if call.data == b_init.inl_accept_yes.callback_data:
-            await state.set_state(Form.check_np_adress)
-            await check_np_adress(previous_message, state)
+            await state.set_state(Form.check_np_address)
+            await check_np_address(previous_message, state)
 
         if call.data == b_init.inl_accept_no.callback_data:
             await state.set_state(Form.set_full_name)
