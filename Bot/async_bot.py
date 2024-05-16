@@ -9,15 +9,16 @@ import __bot_init__ as b_init
 import admins_keyboard as adm_kb
 import Managers.chat_manager as chat_manager
 import bot_comands
-from delivery_order_dp import callback_order_delivery_np
+from delivery_order_np import callback_order_delivery_np
 from delivery_order_jk import callback_order_delivery_jk
+from delivery_order_pickup import callback_order_delivery_pk
 
 bot = b_init.bot
 dp = b_init.dp
+rd = b_init.redis_storage
 admin_chat_ids = b_init.admin_chat_ids
 JsonManager = b_init.JsonManager
 SheetManager = b_init.SheetManager
-OrderManager = b_init.OrderManager
 ChatManager = chat_manager.ChatManager()
 
 @dp.message(F.contact, Form.no_contact)
@@ -106,6 +107,7 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
 
     await callback_order_delivery_np(call, state)
     await callback_order_delivery_jk(call, state)
+    await callback_order_delivery_pk(call, state)
 
 @dp.callback_query(lambda call: call.data.startswith('adm'))
 async def callback_admin(call: types.CallbackQuery, state: FSMContext):
@@ -127,7 +129,6 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_accept_order.callback_data:
-        
         client_message = 'Ваше замовлення підтверджено✅\nОчікуйте на доставку!'
         client_id = call.message.text.split()[0][3:]
         await bot.send_message(client_id, client_message)
@@ -141,13 +142,15 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
                                     call.message.message_id,
                                     reply_markup=keyboard.as_markup())
         await bot.answer_callback_query(call.id)
+
+        order = JsonManager.decod_order(await rd.redis.hgetall(client_id))
         await SheetManager.writing_order(SheetManager.salutna_delivery_sheet,
-                                   client_id,
-                                   '-',
-                                   '-',
-                                   '-',
-                                   '-',
-                                   '-')
+                                   order['user_id'],
+                                   order['user_name'],
+                                   order['phone_number'],
+                                   order['full_name'],
+                                   order['order'],
+                                   order['address'])
 
     if call.data == adm_kb.inl_btn_acept_delivery.callback_data:
         client_message = 'Ваше замовлення було доставлено! 📦\n\nДякую що обераєте нас!'

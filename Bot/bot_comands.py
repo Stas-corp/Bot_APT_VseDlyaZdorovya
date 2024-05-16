@@ -40,6 +40,13 @@ async def user_comand(mess: types.Message, state: FSMContext):
     else:
         await send_welcome(mess, state)
 
+@dp.message(Command('contact'))
+async def send_contact(mess: types.Message, state: FSMContext):
+    message = 'Наші контакти:'
+    await bot.send_message(mess.from_user.id,
+                        message,
+                        reply_markup=b_init.rpl_builder)
+
 @dp.message(CommandStart())
 async def send_welcome(mess: types.Message, state: FSMContext):
     if not JsonManager.login_user(str(mess.from_user.id)):
