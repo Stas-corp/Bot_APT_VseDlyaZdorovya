@@ -95,6 +95,13 @@ class JsonManager:
         self.file_path = file_path
         self.check_path()
 
+    @staticmethod
+    def decod_order(data: dict[bytes,bytes]) -> dict:
+        result = {}
+        for key, value in data.items():
+            result[key.decode('utf-8')] = value.decode('utf-8')
+        return result
+
     def check_path(self):
         directory = os.path.dirname(self.file_path)
         if not os.path.exists(directory):

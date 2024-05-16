@@ -39,7 +39,6 @@ async def set_order_data(call: types.CallbackQuery, state: FSMContext):
     client_message = "Ваше замовлення прийнято 📥\nМи скоро з вами зв'яжемося!"
     await bot.send_message(call.from_user.id,
                            client_message)
-    # await state.set_state(Form.order_await) # НАДО ПОДУМАТЬ НАД СТАТУСОМ!
 
 @dp.message(Form.check_full_name)
 async def check_full_name(mess: types.Message, state: FSMContext):

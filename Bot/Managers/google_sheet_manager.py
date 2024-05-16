@@ -18,6 +18,7 @@ class Sheet_Manager:
         self.user_auto_sheet = self.spreadsheet.worksheet('admin_users')
         self.np_delivery_sheet = self.spreadsheet.worksheet('NP_Delivery')
         self.salutna_delivery_sheet = self.spreadsheet.worksheet('Salutna_Delivery')
+        self.pickup_order_sheet = self.spreadsheet.worksheet('Pickup_Order')
 
     def get_admins_id(self):
         admins = self.user_auto_sheet.get_all_records()

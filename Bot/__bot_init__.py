@@ -1,22 +1,40 @@
-import asyncio
 import aiogram 
-from aiogram.types import KeyboardButton, InlineKeyboardButton, BotCommand
+from aiogram.types import KeyboardButton, InlineKeyboardButton
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.storage.redis import RedisStorage
+
+from redis.asyncio.client import Redis
 
 import __token__
 import Managers.google_sheet_manager as google_sheet_manager
 import Managers.json_manager as json_manager
-import Managers.order_manager as order_manager
+
+redis_storage = RedisStorage(redis=Redis(host='192.168.0.100', password='1111'))
 
 bot = aiogram.Bot(__token__.TOKEN)
-dp = aiogram.Dispatcher()
+dp = aiogram.Dispatcher(storage=redis_storage)
 SheetManager = google_sheet_manager.Sheet_Manager()
 JsonManager = json_manager.UserManager()
 # OrderManager = order_manager.Manager()
 admin_chat_ids = SheetManager.get_admins_id()
 
+apt_adress = [
+    'Салютна',
+    'Фестивальна',
+    'Каштанова'
+]
+
+def keyboard_apt_adress() -> InlineKeyboardBuilder:
+    keyboard = InlineKeyboardBuilder()
+    for apt in apt_adress:
+        btn = InlineKeyboardButton(
+            text=apt,
+            callback_data=f'cli_apt_address_{apt}')
+        keyboard.row(btn, width=1)
+    return keyboard
+        
 class Form(StatesGroup):
     no_contact = State()
     order = State()
@@ -30,6 +48,7 @@ class Form(StatesGroup):
     save_address = State()
     check_np_address = State()
     save_np_address = State()
+    set_pickup_address = State()
     runUp_consultation = State()
     '''preparation for the consultation process'''
     during_consultation = State()
@@ -70,7 +89,6 @@ inl_btn_pickup_order = InlineKeyboardButton(
     text='Самовивоз',
     callback_data='cli_btn_pickup_order')
 
-
 start_inl_builder = InlineKeyboardBuilder()
 start_inl_builder.row(inl_btn_order, inl_btn_delivery, width=2)
 start_inl_builder.row(inl_btn_consultation, width=1)
@@ -79,7 +97,7 @@ accept_user_address = InlineKeyboardBuilder()
 accept_user_address.row(inl_accept_yes, inl_accept_no, width=2)
 
 menu_delivery_order = InlineKeyboardBuilder()
-menu_delivery_order.row(inl_btn_NP_order, width=1)
+menu_delivery_order.row(inl_btn_NP_order, inl_btn_pickup_order, width=1)
 
 '''__________ReplyKeyboardButtons__________'''
 rpl_btn_geo = KeyboardButton(text="Надати геолокацію🗺", request_location=True)
