@@ -14,7 +14,7 @@ SheetManager = b_init.SheetManager
 
 async def set_order_data(call: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    await bot.send_message(call.from_user.id,
+    temp_message = await bot.send_message(call.from_user.id,
                            '⏳')
     await SheetManager.writing_order(SheetManager.np_delivery_sheet,
                                         str(call.from_user.id),
@@ -34,7 +34,7 @@ async def set_order_data(call: types.CallbackQuery, state: FSMContext):
                                text=admin_message)
         
     await bot.delete_message(call.from_user.id,
-                             call.message.message_id + 1)
+                             temp_message.message_id)
     await asyncio.sleep(0.4)
     client_message = "Ваше замовлення прийнято 📥\nМи скоро з вами зв'яжемося!"
     await bot.send_message(call.from_user.id,

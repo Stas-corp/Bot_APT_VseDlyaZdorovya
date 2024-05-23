@@ -34,7 +34,7 @@ async def order_received(mess: types.Message, state: FSMContext):
     data = await state.get_data()
     order = data['order']
     order['address'] = data['address']
-    admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order['order_id']}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {order['address']}\n📦 Отриманно нове замовлення:\n\n{order['order']}"
+    admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order['order_id']}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {order['address']}\n📦 Отриманно нове замовлення:\n\n{order['order']}\n\n❗️❗️❗️Самовивіз❗️❗️❗️"
     for id_adm in admin_chat_ids:
         await bot.send_contact(chat_id=id_adm,
                                phone_number=order['phone_number'],
@@ -50,7 +50,7 @@ async def order_received(mess: types.Message, state: FSMContext):
     await state.set_state(Form.order_await)
     await state.update_data(order=order)
     OrderManager.order_create(order)
-    await redis_storage.redis.hmset(str(mess.from_user.id), order)
+    # await redis_storage.redis.hmset(str(mess.from_user.id), order)
 
 """
 ***********************************************************

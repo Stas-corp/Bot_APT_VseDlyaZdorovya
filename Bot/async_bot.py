@@ -3,6 +3,7 @@ import asyncio
 from aiogram import F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.fsm.storage.base import StorageKey
 
 from __bot_init__ import Form
 import __bot_init__ as b_init
@@ -113,6 +114,11 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
 async def callback_admin(call: types.CallbackQuery, state: FSMContext):
     # print('adm_handler')
     if call.data == adm_kb.inl_btn_order.callback_data:
+        client_id = call.message.text.split()[0][3:]
+        user_data = await state.storage.get_data(StorageKey(call.message.bot.id,
+                                                            client_id,
+                                                            client_id))
+        print(user_data, type(user_data))
         await state.set_state(Form.order_processing)
         client_message = 'Адміністратор👩‍💻 взяв в опрацювання ваше замовлення!\nОчікуйте на підтвердження!'
         client_id = call.message.text.split()[0][3:]
@@ -129,38 +135,80 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_accept_order.callback_data:
-        client_message = 'Ваше замовлення підтверджено✅\nОчікуйте на доставку!'
         client_id = call.message.text.split()[0][3:]
-        await bot.send_message(client_id, client_message)
-        message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅'
-        keyboard = InlineKeyboardBuilder().row(
-            adm_kb.inl_btn_qustion_client, 
-            adm_kb.inl_btn_acept_delivery,
-            width=1)
-        await bot.edit_message_text(message,
-                                    call.message.chat.id,
-                                    call.message.message_id,
-                                    reply_markup=keyboard.as_markup())
+        # order = JsonManager.decod_order(await rd.redis.hgetall(client_id))
+        user_data = await state.storage.get_data(StorageKey(call.message.bot.id,
+                                                            client_id,
+                                                            client_id))
+        order = user_data['order']
+
+        if order['delivery_type'] == 'JK_delivery':
+            client_message = 'Ваше замовлення підтверджено✅\nОчікуйте на доставку!'
+            await bot.send_message(client_id, client_message)
+            message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅'
+            keyboard = InlineKeyboardBuilder().row(
+                adm_kb.inl_btn_qustion_client, 
+                adm_kb.inl_btn_acept_delivery,
+                width=1)
+            await bot.edit_message_text(message,
+                                        call.message.chat.id,
+                                        call.message.message_id,
+                                        reply_markup=keyboard.as_markup())
+            await SheetManager.writing_order(SheetManager.salutna_delivery_sheet,
+                                    order['user_id'],
+                                    order['user_name'],
+                                    order['phone_number'],
+                                    order['full_name'],
+                                    order['order'],
+                                    order['address'])
+            
+        if order['delivery_type'] == 'PK_delivery':
+            client_message = f"Ваше замовлення підтверджено✅\n\nОчікуємо Вас для отримання за адресою:\n{order['address']}"
+            await bot.send_message(client_id, client_message)
+            message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅\nОчікуємо на клієнта для отримання замовлення❗️'
+            keyboard = InlineKeyboardBuilder().row(
+                adm_kb.inl_btn_qustion_client, 
+                adm_kb.inl_btn_acept_delivery,
+                width=1)
+            await bot.edit_message_text(message,
+                                        call.message.chat.id,
+                                        call.message.message_id,
+                                        reply_markup=keyboard.as_markup())
+        
         await bot.answer_callback_query(call.id)
 
-        order = JsonManager.decod_order(await rd.redis.hgetall(client_id))
-        await SheetManager.writing_order(SheetManager.salutna_delivery_sheet,
-                                   order['user_id'],
-                                   order['user_name'],
-                                   order['phone_number'],
-                                   order['full_name'],
-                                   order['order'],
-                                   order['address'])
-
     if call.data == adm_kb.inl_btn_acept_delivery.callback_data:
-        client_message = 'Ваше замовлення було доставлено! 📦\n\nДякую що обераєте нас!'
         client_id = call.message.text.split()[0][3:]
-        await bot.send_message(client_id, client_message)
-        message = call.message.text + '\n\n📌 Замовлення клієнта доставлено 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
-        await bot.edit_message_text(message,
-                                    call.message.chat.id,
-                                    call.message.message_id,
-                                    reply_markup=None)
+        # order = JsonManager.decod_order(await rd.redis.hgetall(client_id))
+        user_data = await state.storage.get_data(StorageKey(call.message.bot.id,
+                                                            client_id,
+                                                            client_id))
+        order = user_data['order']
+
+        if order['delivery_type'] == 'JK_delivery':
+            client_message = 'Ваше замовлення було доставлено! 📦\n\nДякую що обераєте нас!'
+            await bot.send_message(client_id, client_message)
+
+            message = call.message.text + '\n\n📌 Замовлення клієнта доставлено 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
+            await bot.edit_message_text(message,
+                                        call.message.chat.id,
+                                        call.message.message_id,
+                                        reply_markup=None)
+        
+        if order['delivery_type'] == 'PK_delivery':
+            client_message = 'Ваше замовлення було отримано! 📦\n\nДякую що обераєте нас!'
+            await bot.send_message(client_id, client_message)
+
+            message = call.message.text + '\n\n📌 Замовлення клієнта отримано 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
+            await bot.edit_message_text(message,
+                                        call.message.chat.id,
+                                        call.message.message_id,
+                                        reply_markup=None)
+        
+        order['order_completed'] = 1
+        await state.storage.update_data(StorageKey(call.message.bot.id,
+                                                            client_id,
+                                                            client_id), {'order': order})
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_answer_consultation.callback_data:

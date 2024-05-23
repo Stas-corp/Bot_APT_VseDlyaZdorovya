@@ -3,7 +3,6 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 
 '''__________InlineKeyboardButtons__________'''
-adm_order_builder = InlineKeyboardBuilder()
 inl_btn_order = InlineKeyboardButton(
     text='Взяти в опрацювання', 
     callback_data='adm_process_order')
@@ -16,6 +15,8 @@ inl_btn_accept_order = InlineKeyboardButton(
 inl_btn_acept_delivery = InlineKeyboardButton(
     text='Замовлення доставлено',
     callback_data='adm_accept_delivery')
+
+adm_order_builder = InlineKeyboardBuilder()
 adm_order_builder.row(inl_btn_order, width=1)
 
 adm_consultation_builder = InlineKeyboardBuilder()

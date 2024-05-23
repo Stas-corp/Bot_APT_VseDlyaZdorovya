@@ -3,6 +3,7 @@ import asyncio
 from aiogram import F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart, Command
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from __bot_init__ import Form
 import __bot_init__ as b_init
@@ -56,4 +57,13 @@ async def send_welcome(mess: types.Message, state: FSMContext):
                             message,
                             reply_markup=b_init.rpl_builder)
     else:
-        await order_mess(mess, mess.from_user.id)
+        user_data = await state.get_data()
+        order_completed = user_data['order']['order_completed']
+        if order_completed:
+            await order_mess(mess, mess.from_user.id)
+        else:
+            message = 'У вас є не опрацьоване замовлення! \nДочекайтеся обробки вашого замовлення фахівцем 👩‍⚕️ або зверніться за контактами в описі ☎️'
+            keyboard = InlineKeyboardBuilder().row(b_init.inl_btn_consultation, width=1)
+            await bot.send_message(mess.from_user.id,
+                           message,
+                           reply_markup=keyboard.as_markup())
