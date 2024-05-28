@@ -10,7 +10,6 @@ from Managers.order_manager import Manager as OrderManager
 
 bot = b_init.bot
 dp = b_init.dp
-rd = b_init.redis_storage
 admin_chat_ids = b_init.admin_chat_ids
 JsonManager = b_init.JsonManager
 SheetManager = b_init.SheetManager
@@ -56,20 +55,25 @@ async def save_address(mess: types.Message, state: FSMContext):
 async def order_received(mess: types.Message, state: FSMContext):
     user_data = await state.get_data()
     order = user_data['order']
-    admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order['order_id']}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {order['address']}\n📦 Отриманно нове замовлення:\n\n{order['order']}\n\n❗️❗️❗️Доставка по ЖК❗️❗️❗️"
+    admin_message = 'Нове замовлення ❗️❗️❗️'
     for id_adm in admin_chat_ids:
-        await bot.send_contact(chat_id=id_adm,
-                               phone_number=order['phone_number'],
-                               first_name=mess.from_user.first_name,
-                               last_name=mess.from_user.last_name)
         await bot.send_message(chat_id=id_adm,
                                text=admin_message, 
-                               reply_markup=adm_kb.adm_order_builder.as_markup())
-        # message = ''
-        # for key, value in order.items():
-        #     message += f'{key} - {value}\n'
-        # await bot.send_message(chat_id=id_adm,
-        #                        text=message)
+                               reply_markup=adm_kb.adm_go_to_orders_bilder.as_markup())
+    # admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order['order_id']}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {order['address']}\n📦 Отриманно нове замовлення:\n\n{order['order']}\n\n❗️❗️❗️Доставка по ЖК❗️❗️❗️"
+    # for id_adm in admin_chat_ids:
+    #     await bot.send_contact(chat_id=id_adm,
+    #                            phone_number=order['phone_number'],
+    #                            first_name=mess.from_user.first_name,
+    #                            last_name=mess.from_user.last_name)
+    #     await bot.send_message(chat_id=id_adm,
+    #                            text=admin_message, 
+    #                            reply_markup=adm_kb.adm_order_builder.as_markup())
+    #     message = ''
+    #     for key, value in order.items():
+    #         message += f'{key} - {value}\n'
+    #     await bot.send_message(chat_id=id_adm,
+    #                            text=message)
 
     client_message = "Ваше замовлення прийнято 📥\nМи скоро з вами зв'яжемося!"
     await bot.send_message(mess.from_user.id,
@@ -86,14 +90,15 @@ async def order_received(mess: types.Message, state: FSMContext):
 async def callback_order_delivery_jk(call: types.CallbackQuery, state: FSMContext):
     if call.data == b_init.inl_btn_order.callback_data:
         user_id = str(call.from_user.id)
-        order = OrderManager(user_id)
+        order = OrderManager()
         message = 'Створення замовлення для доставки по ЖК 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'
         await bot.send_message(call.from_user.id, 
                                text=message)
         await state.set_state(Form.check_address)
         await bot.answer_callback_query(call.id)
         order.update_property(
-            order_id=order.get_order_number(),
+            user_id=user_id,
+            order_id=await order.get_order_number(),
             delivery_type='JK_delivery',
             user_name=call.from_user.username,
             full_name=call.from_user.full_name,

@@ -12,7 +12,6 @@ from Managers.order_manager import Manager as OrderManager
 
 bot = b_init.bot
 dp = b_init.dp
-redis_storage = b_init.redis_storage
 
 admin_chat_ids = b_init.admin_chat_ids
 JsonManager = b_init.JsonManager
@@ -60,14 +59,15 @@ async def order_received(mess: types.Message, state: FSMContext):
 async def callback_order_delivery_pk(call: types.CallbackQuery, state: FSMContext):
     if call.data == b_init.inl_btn_pickup_order.callback_data:
         user_id = str(call.from_user.id)
-        order = OrderManager(user_id)
+        order = OrderManager()
         message = 'Створення замовлення для самовивозу 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'
         await bot.send_message(call.from_user.id, 
                                text=message)
         await state.set_state(Form.set_pickup_address)
         await bot.answer_callback_query(call.id)
         order.update_property(
-            order_id=order.get_order_number(),
+            user_id=user_id,
+            order_id=await order.get_order_number(),
             delivery_type='PK_delivery',
             user_name=call.from_user.username,
             full_name=call.from_user.full_name,

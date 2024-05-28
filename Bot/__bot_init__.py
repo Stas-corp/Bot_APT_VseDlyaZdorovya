@@ -3,21 +3,25 @@ from aiogram.types import KeyboardButton, InlineKeyboardButton
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.redis import RedisStorage
 
-from redis.asyncio.client import Redis
+# from aiogram_dialog import setup_dialogs
 
 import __token__
+# import orders_dialog
+import DB.db_redis as db_redis
 import Managers.google_sheet_manager as google_sheet_manager
 import Managers.json_manager as json_manager
-
-redis_storage = RedisStorage(redis=Redis(host='192.168.0.100', password='1111'))
+import Managers.order_manager as order_manager
 
 bot = aiogram.Bot(__token__.TOKEN)
-dp = aiogram.Dispatcher(storage=redis_storage)
+
+dp = aiogram.Dispatcher(storage=db_redis.redis_storage)
+# dp.include_router(orders_dialog.dialog)
+# setup_dialogs(dp)
+
 SheetManager = google_sheet_manager.Sheet_Manager()
 JsonManager = json_manager.UserManager()
-# OrderManager = order_manager.Manager()
+OrderManager = order_manager.Manager()
 admin_chat_ids = SheetManager.get_admins_id()
 
 apt_adress = [
@@ -48,11 +52,12 @@ class Form(StatesGroup):
     save_address = State()
     check_np_address = State()
     save_np_address = State()
+
     set_pickup_address = State()
-    runUp_consultation = State()
     '''preparation for the consultation process'''
-    during_consultation = State()
+    runUp_consultation = State()
     '''consultation process'''
+    during_consultation = State()
 # print(admin_chat_ids)
 
 # async def set_bot_commands():

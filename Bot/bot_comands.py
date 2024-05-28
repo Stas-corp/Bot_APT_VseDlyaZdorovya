@@ -1,12 +1,13 @@
-import asyncio
-
 from aiogram import F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from aiogram_dialog import DialogManager, StartMode
+
 from __bot_init__ import Form
 import __bot_init__ as b_init
+from orders_dialog import DialogSG
 
 bot = b_init.bot
 dp = b_init.dp
@@ -47,6 +48,11 @@ async def send_contact(mess: types.Message, state: FSMContext):
     await bot.send_message(mess.from_user.id,
                         message,
                         reply_markup=b_init.rpl_builder)
+    
+@dp.message(Command('wwww'))
+async def order_queue(mess: types.Message, dialog_manager: DialogManager):
+    print('ords')
+    await dialog_manager.start(DialogSG.PAGERS, mode=StartMode.NORMAL)
 
 @dp.message(CommandStart())
 async def send_welcome(mess: types.Message, state: FSMContext):
@@ -58,12 +64,16 @@ async def send_welcome(mess: types.Message, state: FSMContext):
                             reply_markup=b_init.rpl_builder)
     else:
         user_data = await state.get_data()
-        order_completed = user_data['order']['order_completed']
-        if order_completed:
-            await order_mess(mess, mess.from_user.id)
+        if 'order' in user_data and isinstance(user_data['order'], dict):
+            # print(user_data)
+            order_completed = user_data['order']['order_completed']
+            if order_completed:
+                await order_mess(mess, mess.from_user.id)
+            else:
+                message = 'У вас є не опрацьоване замовлення! \nДочекайтеся обробки вашого замовлення фахівцем 👩‍⚕️ або зверніться за контактами в описі ☎️'
+                keyboard = InlineKeyboardBuilder().row(b_init.inl_btn_consultation, width=1)
+                await bot.send_message(mess.from_user.id,
+                            message,
+                            reply_markup=keyboard.as_markup())
         else:
-            message = 'У вас є не опрацьоване замовлення! \nДочекайтеся обробки вашого замовлення фахівцем 👩‍⚕️ або зверніться за контактами в описі ☎️'
-            keyboard = InlineKeyboardBuilder().row(b_init.inl_btn_consultation, width=1)
-            await bot.send_message(mess.from_user.id,
-                           message,
-                           reply_markup=keyboard.as_markup())
+            await order_mess(mess, mess.from_user.id)
