@@ -33,15 +33,20 @@ async def order_received(mess: types.Message, state: FSMContext):
     data = await state.get_data()
     order = data['order']
     order['address'] = data['address']
-    admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order['order_id']}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {order['address']}\n📦 Отриманно нове замовлення:\n\n{order['order']}\n\n❗️❗️❗️Самовивіз❗️❗️❗️"
+    admin_message = 'Нове замовлення ❗️❗️❗️'
     for id_adm in admin_chat_ids:
-        await bot.send_contact(chat_id=id_adm,
-                               phone_number=order['phone_number'],
-                               first_name=mess.from_user.first_name,
-                               last_name=mess.from_user.last_name)
         await bot.send_message(chat_id=id_adm,
                                text=admin_message, 
-                               reply_markup=adm_kb.adm_order_builder.as_markup())
+                               reply_markup=adm_kb.adm_go_to_orders_bilder.as_markup())
+    # admin_message = f"id:{mess.from_user.id}\n№ Замовлення: {order['order_id']}\nКлієнт: @{mess.from_user.username}\nІм'я в ТГ: {mess.from_user.full_name}\n📍 Адреса: {order['address']}\n📦 Отриманно нове замовлення:\n\n{order['order']}\n\n❗️❗️❗️Самовивіз❗️❗️❗️"
+    # for id_adm in admin_chat_ids:
+    #     await bot.send_contact(chat_id=id_adm,
+    #                            phone_number=order['phone_number'],
+    #                            first_name=mess.from_user.first_name,
+    #                            last_name=mess.from_user.last_name)
+    #     await bot.send_message(chat_id=id_adm,
+    #                            text=admin_message, 
+    #                            reply_markup=adm_kb.adm_order_builder.as_markup())
 
     client_message = "Ваше замовлення прийнято 📥\nМи скоро з вами зв'яжемося!"
     await bot.send_message(mess.from_user.id,
