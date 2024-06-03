@@ -88,7 +88,7 @@ async def order_received(mess: types.Message, state: FSMContext):
 ***********************************************************
 """
 async def callback_order_delivery_jk(call: types.CallbackQuery, state: FSMContext):
-    if call.data == b_init.inl_btn_order.callback_data:
+    if call.data == b_init.inl_btn_order_jk.callback_data:
         user_id = str(call.from_user.id)
         order = OrderManager()
         message = 'Створення замовлення для доставки по ЖК 🔒\n\nВведіть назву препарату для передачі співробітнику аптеки:'

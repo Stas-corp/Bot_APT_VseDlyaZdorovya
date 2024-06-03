@@ -22,6 +22,16 @@ inl_btn_go_to_orders = InlineKeyboardButton(
     text='Перейти до замовлень', 
     callback_data='adm_go_to_orders')
 
+inl_btn_disconect_consultation = InlineKeyboardButton(
+    text='Завершити поточну комунікацію 🛑',
+    callback_data='adm_disconect_consultation')
+inl_btn_for_order_jk = InlineKeyboardButton(
+    text='Замовлення JК',
+    callback_data='adm_consult_order_jk')
+inl_btn_for_order_pknp = InlineKeyboardButton(
+    text='Замовлення PK|NP',
+    callback_data='adm_consult_order_pknp')
+
 adm_order_builder = InlineKeyboardBuilder()
 adm_order_builder.row(inl_btn_order, width=1)
 
@@ -31,9 +41,15 @@ adm_consultation_builder.row(inl_btn_answer_consultation, width=1)
 adm_go_to_orders_bilder = InlineKeyboardBuilder()
 adm_go_to_orders_bilder.row(inl_btn_go_to_orders, width=1)
 
+adm_menu_consultation_bilder = InlineKeyboardBuilder()
+adm_menu_consultation_bilder.row(inl_btn_disconect_consultation, 
+                                 inl_btn_for_order_jk, 
+                                 inl_btn_for_order_pknp,
+                                 width=1)
+
 '''__________ReplyKeyboardButtons__________'''
-disconect_consultation = KeyboardButton(text="Завершити поточну комунікацію 🛑")
+menu_consultation = KeyboardButton(text="Меню обробки комунікації 📋")
 kb = [[
-    disconect_consultation
+    menu_consultation
 ]]
 adm_rpl_builder = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)

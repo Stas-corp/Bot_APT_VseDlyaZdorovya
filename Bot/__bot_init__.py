@@ -66,9 +66,15 @@ class Form(StatesGroup):
 #     await bot.set_my_commands(comands)
 
 '''__________InlineKeyboardButtons__________'''
-inl_btn_order = InlineKeyboardButton(
+inl_btn_order_jk = InlineKeyboardButton(
     text='Доставка 💊 по ЖК ',
     callback_data='cli_btn_jkDelivery')
+inl_btn_NP_order = InlineKeyboardButton(
+    text='Нова Пошта 📦',
+    callback_data='cli_btn_NP_order')
+inl_btn_pickup_order = InlineKeyboardButton(
+    text='Самовивоз 🚶',
+    callback_data='cli_btn_pickup_order')
 inl_btn_consultation = InlineKeyboardButton(
     text='Задати питання фахівцю 👩‍⚕️', 
     callback_data='cli_btn_consultation')
@@ -87,15 +93,10 @@ inl_accept_yes = InlineKeyboardButton(
 inl_accept_no = InlineKeyboardButton(
     text='Ні ❌',
     callback_data='cli_btn_accept_address_no')
-inl_btn_NP_order = InlineKeyboardButton(
-    text='Нова Пошта 📦',
-    callback_data='cli_btn_NP_order')
-inl_btn_pickup_order = InlineKeyboardButton(
-    text='Самовивоз',
-    callback_data='cli_btn_pickup_order')
+
 
 start_inl_builder = InlineKeyboardBuilder()
-start_inl_builder.row(inl_btn_order, inl_btn_delivery, width=2)
+start_inl_builder.row(inl_btn_order_jk, inl_btn_delivery, width=2)
 start_inl_builder.row(inl_btn_consultation, width=1)
 
 accept_user_address = InlineKeyboardBuilder()

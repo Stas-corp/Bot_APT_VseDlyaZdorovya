@@ -49,7 +49,7 @@ async def send_contact(mess: types.Message, state: FSMContext):
                         message,
                         reply_markup=b_init.rpl_builder)
     
-@dp.message(Command('wwww'))
+@dp.message(Command('wwww'), F.from_user.id.in_(admin_chat_ids))
 async def order_queue(mess: types.Message, dialog_manager: DialogManager):
     print('ords')
     await dialog_manager.start(DialogSG.PAGERS, mode=StartMode.NORMAL)
