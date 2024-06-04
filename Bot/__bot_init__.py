@@ -93,7 +93,12 @@ inl_accept_yes = InlineKeyboardButton(
 inl_accept_no = InlineKeyboardButton(
     text='Ні ❌',
     callback_data='cli_btn_accept_address_no')
+inl_btn_main_menu = InlineKeyboardButton(
+    text='Головне меню 📋',
+    callback_data='cli_btn_main_menu')
 
+main_menu_bilder = InlineKeyboardBuilder()
+main_menu_bilder.row(inl_btn_main_menu, width=1)
 
 start_inl_builder = InlineKeyboardBuilder()
 start_inl_builder.row(inl_btn_order_jk, inl_btn_delivery, width=2)

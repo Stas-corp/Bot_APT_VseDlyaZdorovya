@@ -147,6 +147,9 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
         await state.set_state(Form.runUp_consultation)
         await bot.answer_callback_query(call.id)
 
+    if call.data == b_init.inl_btn_main_menu.callback_data:
+        bot_comands.send_welcome(call.message, state)
+
     await callback_order_delivery_np(call, state)
     await callback_order_delivery_jk(call, state)
     await callback_order_delivery_pk(call, state)
@@ -168,12 +171,12 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         await state.set_state(Form.order_processing)
         client_message = 'Адміністратор👩‍💻 взяв в опрацювання ваше замовлення!\nОчікуйте на підтвердження!'
         await bot.send_message(client_id, client_message)
-        message = call.message.text + '\n\n📌 Замовлення клієнта взято в обробку⚙️'
+        adm_message = call.message.text + '\n\n📌 Замовлення клієнта взято в обробку⚙️'
         keyboard = InlineKeyboardBuilder().row(
             adm_kb.inl_btn_qustion_client, 
             adm_kb.inl_btn_accept_order,
             width=1)
-        await bot.edit_message_text(message,
+        await bot.edit_message_text(adm_message,
                                     call.message.chat.id,
                                     call.message.message_id,
                                     reply_markup=keyboard.as_markup())
@@ -190,12 +193,12 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         if order['delivery_type'] == 'JK_delivery':
             client_message = 'Ваше замовлення підтверджено✅\nОчікуйте на доставку!'
             await bot.send_message(client_id, client_message)
-            message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅'
+            adm_message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅'
             keyboard = InlineKeyboardBuilder().row(
                 adm_kb.inl_btn_qustion_client, 
                 adm_kb.inl_btn_acept_delivery,
                 width=1)
-            await bot.edit_message_text(message,
+            await bot.edit_message_text(adm_message,
                                         call.message.chat.id,
                                         call.message.message_id,
                                         reply_markup=keyboard.as_markup())
@@ -210,12 +213,12 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         if order['delivery_type'] == 'PK_delivery':
             client_message = f"Ваше замовлення підтверджено✅\n\nОчікуємо Вас для отримання за адресою:\n{order['address']}"
             await bot.send_message(client_id, client_message)
-            message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅\nОчікуємо на клієнта для отримання замовлення❗️'
+            adm_message = call.message.text + '\n\n📌 Замовлення клієнта підтверджено✅\nОчікуємо на клієнта для отримання замовлення❗️'
             keyboard = InlineKeyboardBuilder().row(
                 adm_kb.inl_btn_qustion_client, 
                 adm_kb.inl_btn_acept_delivery,
                 width=1)
-            await bot.edit_message_text(message,
+            await bot.edit_message_text(adm_message,
                                         call.message.chat.id,
                                         call.message.message_id,
                                         reply_markup=keyboard.as_markup())
@@ -229,45 +232,42 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
                                                             client_id,
                                                             client_id))
         order = user_data['order']
+        order['order_completed'] = 1
 
         if order['delivery_type'] == 'JK_delivery':
             client_message = 'Ваше замовлення було доставлено! 📦\n\nДякую що обираєте нас!'
-            await bot.send_message(client_id, client_message)
-
-            message = call.message.text + '\n\n📌 Замовлення клієнта доставлено 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
-            await bot.edit_message_text(message,
-                                        call.message.chat.id,
-                                        call.message.message_id,
-                                        reply_markup=None)
+            adm_message = call.message.text + '\n\n📌 Замовлення клієнта доставлено 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
         
         if order['delivery_type'] == 'PK_delivery':
             client_message = 'Ваше замовлення було отримано! 📦\n\nДякую що обираєте нас!'
-            await bot.send_message(client_id, client_message)
+            adm_message = call.message.text + '\n\n📌 Замовлення клієнта отримано 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
 
-            message = call.message.text + '\n\n📌 Замовлення клієнта отримано 📦\n❗️❗️❗️Повністю опрацьовано❗️❗️❗️'
-            await bot.edit_message_text(message,
-                                        call.message.chat.id,
-                                        call.message.message_id,
-                                        reply_markup=None)
+        await bot.send_message(client_id,
+                               client_message,
+                               reply_markup=b_init.main_menu_bilder.as_markup())
+        await bot.edit_message_text(adm_message,
+                                    call.message.chat.id,
+                                    call.message.message_id,
+                                    reply_markup=None)
         
         OrderManager.update_order_data(order_id=order['order_id'],
                                        order_completed=1)
-        order['order_completed'] = 1
         await state.storage.update_data(StorageKey(call.message.bot.id,
                                                     client_id,
                                                     client_id), 
                                         {'order': order})
+        
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_answer_consultation.callback_data:
         await state.set_state(Form.during_consultation)
-        message = call.message.text + '\nЗапит клієнта взято в обробку ⚙️'
-        await bot.edit_message_text(message,
+        adm_message = call.message.text + '\nЗапит клієнта взято в обробку ⚙️'
+        await bot.edit_message_text(adm_message,
                                     call.message.chat.id,
                                     call.message.message_id,
                                     reply_markup=None)
-        message = f'Напишіть вашу відповідь клієнту 👇'
-        await bot.send_message(call.from_user.id, message, reply_markup=adm_kb.adm_rpl_builder)
+        adm_message = f'Напишіть вашу відповідь клієнту 👇'
+        await bot.send_message(call.from_user.id, adm_message, reply_markup=adm_kb.adm_rpl_builder)
         client_id = int(call.message.text.split()[0][3:])
         ChatManager.set_id_chating(call.from_user.id, client_id)
         await bot.answer_callback_query(call.id)
@@ -276,9 +276,9 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         adm_state = await state.get_state()
         if adm_state == Form.order_await:
             await state.set_state(Form.order_processing)
-            message = 'Фахівець 👩‍⚕️ дізнався необхідну інформацію з приводу вашого замовлення!\nОчікуйте на підтвердження замовлення!'
+            adm_message = 'Фахівець 👩‍⚕️ дізнався необхідну інформацію з приводу вашого замовлення!\nОчікуйте на підтвердження замовлення!'
             await bot.send_message(ChatManager.client_id,
-                                message,
+                                adm_message,
                                 reply_markup=types.ReplyKeyboardRemove())
 
         if adm_state == Form.during_consultation:
@@ -304,27 +304,27 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
             #     await bot_comands.order_mess(call.message, ChatManager.client_id)
 
         ChatManager.clear_id_chating()
-        message = 'Комунікація з клієнтом була ЗАВЕРШЕНА🛑\nНаступні повідомлення клієнт не отримає❗️'
+        adm_message = 'Комунікація з клієнтом була ЗАВЕРШЕНА🛑\nНаступні повідомлення клієнт не отримає❗️'
         await bot.delete_message(call.from_user.id,
                                  call.message.message_id)
         await bot.send_message(call.from_user.id,
-                               message,
+                               adm_message,
                                reply_markup=types.ReplyKeyboardRemove())
         await bot.answer_callback_query(call.id)
     
     if call.data == adm_kb.inl_btn_for_order_jk.callback_data:
-        message = 'Створити замовлення з доставкую по ЖК 📫'
+        adm_message = 'Створити замовлення з доставкую по ЖК 📫'
         kb = InlineKeyboardBuilder().row(b_init.inl_btn_order_jk)
         await bot.send_message(ChatManager.client_id,
-                               message,
+                               adm_message,
                                reply_markup=kb.as_markup())
         await bot.answer_callback_query(call.id)
         
     if call.data == adm_kb.inl_btn_for_order_pknp.callback_data:
-        message = 'Створити замовлення для самовивозу 🚶 або доставкою НП 📦'
+        adm_message = 'Створити замовлення для самовивозу 🚶 або доставкою НП 📦'
         kb = InlineKeyboardBuilder().row(b_init.inl_btn_NP_order, b_init.inl_btn_pickup_order)
         await bot.send_message(ChatManager.client_id,
-                               message,
+                               adm_message,
                                reply_markup=kb.as_markup())
         await bot.answer_callback_query(call.id)
     
@@ -333,9 +333,9 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         client_id = int(call.message.text.split()[0][3:])
         client_message = 'Адміністратор👩‍💻 хоче задати вам запитання!\nОчікуйте на повідомлення 📩'
         await bot.send_message(client_id, client_message)
-        message = f'Введіть ваше запитання клієнту 👇'
+        adm_message = f'Введіть ваше запитання клієнту 👇'
         # await bot.send_message(call.from_user.id, message, reply_markup=adm_kb.adm_rpl_builder)
-        await call.message.reply(message, reply_markup=adm_kb.adm_rpl_builder)
+        await call.message.reply(adm_message, reply_markup=adm_kb.adm_rpl_builder)
         ChatManager.set_id_chating(call.from_user.id, client_id)
         await bot.answer_callback_query(call.id)
         
