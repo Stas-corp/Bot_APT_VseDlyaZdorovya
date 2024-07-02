@@ -9,7 +9,7 @@ from aiogram_dialog.widgets.text import Const, Format
 from aiogram_dialog import Dialog, Window, setup_dialogs
 from aiogram_dialog.widgets.kbd import (
     CurrentPage, FirstPage, LastPage,
-    Multiselect, NextPage, PrevPage,
+    Multiselect, Select, NextPage, PrevPage,
     Row, ScrollingGroup, Button)
 from aiogram_dialog import (
     Dialog, DialogManager)
@@ -56,9 +56,8 @@ dialog = Dialog(
     Window(
         Const("Замовлення які треба опрацювати:"),
         ScrollingGroup(
-            Multiselect(
+            Select(
                 Format("{item}"),
-                Format("O {item}"),
                 items="orders",
                 id="adm_get_order",
                 item_id_getter=lambda item: int(item.split()[-1]),
