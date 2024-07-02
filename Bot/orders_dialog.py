@@ -58,7 +58,7 @@ dialog = Dialog(
         ScrollingGroup(
             Multiselect(
                 Format("{item}"),
-                Format("Не переглянуто |{item}"),
+                Format("O {item}"),
                 items="orders",
                 id="adm_get_order",
                 item_id_getter=lambda item: int(item.split()[-1]),
