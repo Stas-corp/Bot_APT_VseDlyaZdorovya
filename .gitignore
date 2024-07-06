@@ -167,3 +167,4 @@ cython_debug/
 #.idea/
 data/users_data.json
 Bot/DB/db_redis.py
+Bot/message_text.txt

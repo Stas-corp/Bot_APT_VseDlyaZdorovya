@@ -16,7 +16,7 @@ async def set_order_data(call: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     temp_message = await bot.send_message(call.from_user.id,
                            '⏳')
-    await SheetManager.writing_order(SheetManager.np_delivery_sheet,
+    await SheetManager.writing_data(SheetManager.np_delivery_sheet,
                                         str(call.from_user.id),
                                         call.from_user.username,
                                         JsonManager.get_phone_number(str(call.from_user.id)),

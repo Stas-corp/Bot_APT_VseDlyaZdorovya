@@ -14,6 +14,13 @@ dp = b_init.dp
 admin_chat_ids = b_init.admin_chat_ids
 JsonManager = b_init.JsonManager
 
+async def welcome(user_id, state: FSMContext):
+    message = '''Привіт!🖐\nЯ бот🤖 аптеки "Все для Здоров'я".\nДля початку, надайте свій контак, для подальшої комунікації 👇'''
+    await state.set_state(Form.no_contact)
+    await bot.send_message(user_id,
+                        message,
+                        reply_markup=b_init.rpl_builder)
+
 async def order_mess(mess: types.Message, user_id: int):
     message = 'Я можу у тебе прийняти бронь на ліки та надати можливисть задати питання фахівцю!'
     await bot.send_message(user_id,

@@ -136,8 +136,8 @@ async def during_consultation(mess: types.Message, state: FSMContext):
 @dp.callback_query(lambda call: call.data.startswith('cli'))
 async def callback_client(call: types.CallbackQuery, state: FSMContext):
     # print('cli_handler')
-    await bot.edit_message_reply_markup(call.message.chat.id,
-                                        call.message.message_id,
+    await bot.edit_message_reply_markup(chat_id=call.message.chat.id,
+                                        message_id=call.message.message_id,
                                         reply_markup=None)
 
     if call.data == b_init.inl_btn_consultation.callback_data:
@@ -148,7 +148,7 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
         await bot.answer_callback_query(call.id)
 
     if call.data == b_init.inl_btn_main_menu.callback_data:
-        bot_comands.send_welcome(call.message, state)
+        await bot_comands.order_mess(call.message, call.from_user.id)
 
     await callback_order_delivery_np(call, state)
     await callback_order_delivery_jk(call, state)
@@ -176,9 +176,9 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
             adm_kb.inl_btn_qustion_client, 
             adm_kb.inl_btn_accept_order,
             width=1)
-        await bot.edit_message_text(adm_message,
-                                    call.message.chat.id,
-                                    call.message.message_id,
+        await bot.edit_message_text(text=adm_message,
+                                    chat_id=call.message.chat.id,
+                                    message_id=call.message.message_id,
                                     reply_markup=keyboard.as_markup())
         await bot.answer_callback_query(call.id)
 
@@ -198,11 +198,12 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
                 adm_kb.inl_btn_qustion_client, 
                 adm_kb.inl_btn_acept_delivery,
                 width=1)
-            await bot.edit_message_text(adm_message,
-                                        call.message.chat.id,
-                                        call.message.message_id,
+            await bot.edit_message_text(text=adm_message,
+                                        chat_id=call.message.chat.id,
+                                        message_id=call.message.message_id,
                                         reply_markup=keyboard.as_markup())
             await SheetManager.writing_order(SheetManager.salutna_delivery_sheet,
+                                    order['order_id'],
                                     order['user_id'],
                                     order['user_name'],
                                     order['phone_number'],
@@ -218,10 +219,18 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
                 adm_kb.inl_btn_qustion_client, 
                 adm_kb.inl_btn_acept_delivery,
                 width=1)
-            await bot.edit_message_text(adm_message,
-                                        call.message.chat.id,
-                                        call.message.message_id,
+            await bot.edit_message_text(text=adm_message,
+                                        chat_id=call.message.chat.id,
+                                        message_id=call.message.message_id,
                                         reply_markup=keyboard.as_markup())
+            await SheetManager.writing_order(SheetManager.pickup_order_sheet,
+                                    order['order_id'],
+                                    order['user_id'],
+                                    order['user_name'],
+                                    order['phone_number'],
+                                    order['full_name'],
+                                    order['order'],
+                                    order['address'])
         
         await bot.answer_callback_query(call.id)
 
@@ -245,9 +254,9 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         await bot.send_message(client_id,
                                client_message,
                                reply_markup=b_init.main_menu_bilder.as_markup())
-        await bot.edit_message_text(adm_message,
-                                    call.message.chat.id,
-                                    call.message.message_id,
+        await bot.edit_message_text(text=adm_message,
+                                    chat_id=call.message.chat.id,
+                                    message_id=call.message.message_id,
                                     reply_markup=None)
         
         OrderManager.update_order_data(order_id=order['order_id'],
@@ -262,9 +271,9 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
     if call.data == adm_kb.inl_btn_answer_consultation.callback_data:
         await state.set_state(Form.during_consultation)
         adm_message = call.message.text + '\nЗапит клієнта взято в обробку ⚙️'
-        await bot.edit_message_text(adm_message,
-                                    call.message.chat.id,
-                                    call.message.message_id,
+        await bot.edit_message_text(text=adm_message,
+                                    chat_id=call.message.chat.id,
+                                    message_id=call.message.message_id,
                                     reply_markup=None)
         adm_message = f'Напишіть вашу відповідь клієнту 👇'
         await bot.send_message(call.from_user.id, adm_message, reply_markup=adm_kb.adm_rpl_builder)

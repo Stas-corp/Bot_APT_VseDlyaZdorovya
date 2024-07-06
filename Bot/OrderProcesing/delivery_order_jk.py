@@ -75,7 +75,7 @@ async def order_received(mess: types.Message, state: FSMContext):
     #     await bot.send_message(chat_id=id_adm,
     #                            text=message)
 
-    client_message = "Ваше замовлення прийнято 📥\nМи скоро з вами зв'яжемося!"
+    client_message = f"Ваше замовлення прийнято 📥\n\nЗамовлення №{order['order_id']}\n\nМи скоро з вами зв'яжемося!"
     await bot.send_message(mess.from_user.id,
                            client_message)
     await state.set_state(Form.order_await)
