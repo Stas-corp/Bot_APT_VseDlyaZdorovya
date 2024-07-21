@@ -1,5 +1,6 @@
-import asyncio
+import logging
 
+import asyncio
 from aiogram import F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -141,6 +142,7 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
                                         reply_markup=None)
 
     if call.data == b_init.inl_btn_consultation.callback_data:
+        logging.warn(f'User {call.from_user.id} in process create consultation')
         message = 'Запит на комунікацію 📨\n\nВведіть ваше запитання і очікуйте відповіді від фахівця!'
         await bot.send_message(call.from_user.id, 
                                text=message)
@@ -261,10 +263,11 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         
         OrderManager.update_order_data(order_id=order['order_id'],
                                        order_completed=1)
+        await OrderManager.del_order_in_processing(order_id=order['order_id'])
         await state.storage.update_data(StorageKey(call.message.bot.id,
                                                     client_id,
                                                     client_id), 
-                                        {'order': order})
+                                                    {'order': order})
         
         await bot.answer_callback_query(call.id)
 

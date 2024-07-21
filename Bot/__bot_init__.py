@@ -1,8 +1,11 @@
+import logging
+
 import aiogram 
 from aiogram.types import KeyboardButton, InlineKeyboardButton
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.loggers import dispatcher
 
 # from aiogram_dialog import setup_dialogs
 
@@ -13,8 +16,18 @@ import Managers.google_sheet_manager as google_sheet_manager
 import Managers.json_manager as json_manager
 import Managers.order_manager as order_manager
 
-bot = aiogram.Bot(__token__.TOKEN)
 
+logger = dispatcher
+logging.basicConfig(
+    level=logging.WARN,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("bot_activity.log"),
+        logging.StreamHandler()
+    ]
+)
+
+bot = aiogram.Bot(__token__.TOKEN)
 dp = aiogram.Dispatcher(storage=db_redis.redis_storage)
 # dp.include_router(orders_dialog.dialog)
 # setup_dialogs(dp)

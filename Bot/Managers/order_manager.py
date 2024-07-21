@@ -48,14 +48,31 @@ class Manager:
         JsonManager(file_path=Manager.__file_path__).__save_data__(data)
 
     @staticmethod
-    def get_NotCompletedOrder() -> dict:
-        ''':return: dict {orders: [Замовлення N]}'''
-        result = {'orders':[]}
+    def get_NotCompletedOrder() -> list:
+        ''':return: list ['Замовлення N']'''
+        result = []
         data = JsonManager(file_path=Manager.__file_path__)._get_data_()
         for order_id, order_data in data.items():
             if not order_data['order_completed']:
-                result['orders'].append(f'Замовлення {order_id}')
+                result.append(f'Замовлення {order_id}')
         return result
+    
+    @staticmethod
+    async def add_order_in_processing(order_id: str):
+        ords = await Manager.get_orders_in_processing()
+        if not order_id in ords:
+            await redis_storage.redis.rpush('order_in_processing', order_id)
+
+    @staticmethod
+    async def get_orders_in_processing():
+    # Получение всех элементов списка по ключу
+        result = await redis_storage.redis.lrange('order_in_processing', 0, -1)
+        return [item.decode('utf-8') for item in result]
+    
+    @staticmethod
+    async def del_order_in_processing(order_id: str):
+        order = f'Замовлення {order_id}'
+        await redis_storage.redis.lrem('order_in_processing', 0, order)
     
     @staticmethod
     def get_order(order_id: str) -> dict:
@@ -95,6 +112,7 @@ class Manager:
 if __name__ == '__main__':
     mng = Manager()
     print(mng.get_NotCompletedOrder())
+    # print(mng.get_orders_in_processing())
     # mng.update_order_data('86', order_completed=1)
 
     # mng.__dict__

@@ -18,8 +18,8 @@ async def welcome(user_id, state: FSMContext):
     message = '''Привіт!🖐\nЯ бот🤖 аптеки "Все для Здоров'я".\nДля початку, надайте свій контак, для подальшої комунікації 👇'''
     await state.set_state(Form.no_contact)
     await bot.send_message(user_id,
-                        message,
-                        reply_markup=b_init.rpl_builder)
+                            message,
+                            reply_markup=b_init.rpl_builder)
 
 async def order_mess(mess: types.Message, user_id: int):
     message = 'Я можу у тебе прийняти бронь на ліки та надати можливисть задати питання фахівцю!'
@@ -53,12 +53,10 @@ async def user_comand(mess: types.Message, state: FSMContext):
 async def send_contact(mess: types.Message, state: FSMContext):
     message = 'Наші контакти:'
     await bot.send_message(mess.from_user.id,
-                        message,
-                        reply_markup=b_init.rpl_builder)
+                           message)
     
 @dp.message(Command('wwww'), F.from_user.id.in_(admin_chat_ids))
 async def order_queue(mess: types.Message, dialog_manager: DialogManager):
-    print('ords')
     await dialog_manager.start(DialogSG.PAGERS, mode=StartMode.NORMAL)
 
 @dp.message(CommandStart())
@@ -67,8 +65,8 @@ async def send_welcome(mess: types.Message, state: FSMContext):
         message = '''Привіт!🖐\nЯ бот🤖 аптеки "Все для Здоров'я".\nДля початку, надайте свій контак, для подальшої комунікації 👇'''
         await state.set_state(Form.no_contact)
         await bot.send_message(mess.from_user.id,
-                            message,
-                            reply_markup=b_init.rpl_builder)
+                              message,
+                              reply_markup=b_init.rpl_builder)
     else:
         user_data = await state.get_data()
         if 'order' in user_data and isinstance(user_data['order'], dict):
@@ -80,7 +78,7 @@ async def send_welcome(mess: types.Message, state: FSMContext):
                 message = 'У вас є не опрацьоване замовлення! \nДочекайтеся обробки вашого замовлення фахівцем 👩‍⚕️ або зверніться за контактами в описі ☎️'
                 keyboard = InlineKeyboardBuilder().row(b_init.inl_btn_consultation, width=1)
                 await bot.send_message(mess.from_user.id,
-                            message,
-                            reply_markup=keyboard.as_markup())
+                                        message,
+                                        reply_markup=keyboard.as_markup())
         else:
             await order_mess(mess, mess.from_user.id)

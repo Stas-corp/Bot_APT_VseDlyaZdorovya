@@ -168,3 +168,5 @@ cython_debug/
 data/users_data.json
 Bot/DB/db_redis.py
 Bot/message_text.txt
+data/users_data.json
+data/users_data.json
