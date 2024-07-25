@@ -57,7 +57,7 @@ async def send_contact(mess: types.Message, state: FSMContext):
     
 @dp.message(Command('wwww'), F.from_user.id.in_(admin_chat_ids))
 async def order_queue(mess: types.Message, dialog_manager: DialogManager):
-    await dialog_manager.start(DialogSG.PAGERS, mode=StartMode.NORMAL)
+    await dialog_manager.start(DialogSG.PAGERS, mode=StartMode.RESET_STACK)
 
 @dp.message(CommandStart())
 async def send_welcome(mess: types.Message, state: FSMContext):

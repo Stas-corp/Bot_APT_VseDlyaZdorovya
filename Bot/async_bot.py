@@ -51,26 +51,33 @@ async def get_contac(mess: types.Message, state: FSMContext):
 async def menu_consultation(mess: types.Message, state: FSMContext):
     message = 'Меню взаімодії під час консультації:'
     adm_state = await state.get_state()
+    logging.warn(f'User {mess.from_user.id} call menu consultation, have state: {adm_state}')
     if adm_state == Form.order_await:
+        # logging.warn(f'User {mess.from_user.id} {adm_state}')
         kb = InlineKeyboardBuilder().row(adm_kb.inl_btn_disconect_consultation)
         await bot.send_message(mess.from_user.id,
                                 message,
                                 reply_markup=kb.as_markup())
     if adm_state == Form.during_consultation:
+        # logging.warn(f'User {mess.from_user.id} {adm_state}')
         user_data = await state.storage.get_data(StorageKey(mess.bot.id,
                                                             ChatManager.client_id,
                                                             ChatManager.client_id))
-        if 'order' in user_data and isinstance(user_data['order'], dict):
-            order_completed = user_data['order']['order_completed']
-            if order_completed:
-                await bot.send_message(mess.from_user.id,
-                                        message,
-                                        reply_markup=adm_kb.adm_menu_consultation_bilder.as_markup())
-            else:
+        if not 'order' in user_data:
+            await bot.send_message(mess.from_user.id,
+                                   message,
+                                   reply_markup=adm_kb.adm_menu_consultation_bilder.as_markup())
+        else:
+            order_completed = user_data['order']['order_completed']   
+            if not order_completed:
                 kb = InlineKeyboardBuilder().row(adm_kb.inl_btn_disconect_consultation)
                 await bot.send_message(mess.from_user.id,
-                                        message,
-                                        reply_markup=kb.as_markup())
+                                       message,
+                                       reply_markup=kb.as_markup())
+            else:
+                await bot.send_message(mess.from_user.id,
+                                       message,
+                                       reply_markup=adm_kb.adm_menu_consultation_bilder.as_markup())
 
 @dp.message(Form.runUp_consultation)
 async def runUp_consultation(mess: types.Message, state: FSMContext):
@@ -90,45 +97,17 @@ async def runUp_consultation(mess: types.Message, state: FSMContext):
     await mess.reply(client_reply)
     await state.set_state(Form.during_consultation)
 
-@dp.message(Form.order_await)
-async def order_consultation(mess: types.Message, state: FSMContext):
-    # if mess.text == adm_kb.menu_consultation.text:
-    #     await state.set_state(Form.order_processing)
-    #     message = 'Фахівець 👩‍⚕️ дізнався необхідну інформацію з приводу вашого замовлення!\nОчікуйте на підтвердження замовлення!'
-    #     await bot.send_message(ChatManager.client_id,
-    #                            message,
-    #                            reply_markup=types.ReplyKeyboardRemove())
-    #     ChatManager.clear_id_chating()
-    # else:
-        await ChatManager.chating(mess)
-
-@dp.message(Form.during_consultation)
+@dp.message(Form.during_consultation or Form.order_await) #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 async def during_consultation(mess: types.Message, state: FSMContext):
-    # if mess.text == adm_kb.menu_consultation.text:
-    #     await state.set_state(None)
-    #     message = 'Комунікація завершенна❗️\nДякую за зверення до фахівця 👩‍⚕️'
-    #     await bot.send_message(ChatManager.client_id,
-    #                            message,
-    #                            reply_markup=types.ReplyKeyboardRemove())
-        
-    #     user_data = await state.storage.get_data(StorageKey(mess.bot.id,
-    #                                                         ChatManager.client_id,
-    #                                                         ChatManager.client_id))
-    #     if 'order' in user_data and isinstance(user_data['order'], dict):
-    #         order_completed = user_data['order']['order_completed']
-    #         if order_completed:
-    #             await bot_comands.order_mess(mess, ChatManager.client_id)
-    #         else:
-    #             message = 'Очікуйте опрацювання вашого замовлення ⏱\nНезабаром отримаєте нове сповіщення 🔔'
-    #             await bot.send_message(ChatManager.client_id,
-    #                                    message)
-    #     else:
-    #         await bot_comands.order_mess(mess, ChatManager.client_id)
-    #     ChatManager.clear_id_chating()
-    # else:
+    if  mess.from_user.id in [ChatManager.client_id, ChatManager.admin_id]:
         await ChatManager.chating(mess)
-
-
+        # if not mess.from_user.id == ChatManager.client_id:
+    else:
+        message = 'Адміністратор не в чаті зараз ⛔️\nВи можете повторно створити запит на комунікацію 📨'
+        kb = InlineKeyboardBuilder().row(b_init.inl_btn_consultation)
+        await mess.reply(text=message,
+                         reply_markup=kb.as_markup())
+        
 """
 ***********************************************************
 ************************ CaLL_BACK ************************
@@ -242,6 +221,10 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         user_data = await state.storage.get_data(StorageKey(call.message.bot.id,
                                                             client_id,
                                                             client_id))
+        # order_db = await b_init.db_redis.redis_storage.get_data(StorageKey(call.message.bot.id,
+        #                                                     client_id,
+        #                                                     client_id))
+        # print(f'order_db \n {order_db}')
         order = user_data['order']
         order['order_completed'] = 1
 
@@ -315,7 +298,6 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
             # else:
             #     await bot_comands.order_mess(call.message, ChatManager.client_id)
 
-        ChatManager.clear_id_chating()
         adm_message = 'Комунікація з клієнтом була ЗАВЕРШЕНА🛑\nНаступні повідомлення клієнт не отримає❗️'
         await bot.delete_message(call.from_user.id,
                                  call.message.message_id)
@@ -323,6 +305,7 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
                                adm_message,
                                reply_markup=types.ReplyKeyboardRemove())
         await bot.answer_callback_query(call.id)
+        ChatManager.clear_id_chating()
     
     if call.data == adm_kb.inl_btn_for_order_jk.callback_data:
         adm_message = 'Створити замовлення з доставкую по ЖК 📫'
@@ -341,7 +324,7 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         await bot.answer_callback_query(call.id)
     
     if call.data == adm_kb.inl_btn_qustion_client.callback_data:
-        await state.set_state(Form.order_await)
+        await state.set_state(Form.during_consultation)
         client_id = int(call.message.text.split()[0][3:])
         client_message = 'Адміністратор👩‍💻 хоче задати вам запитання!\nОчікуйте на повідомлення 📩'
         await bot.send_message(client_id, client_message)

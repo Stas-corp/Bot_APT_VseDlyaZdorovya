@@ -1,4 +1,4 @@
-import asyncio
+import logging
 
 from aiogram import F, types
 
@@ -20,13 +20,14 @@ class ChatManager:
         self.client_id = None
 
     async def chating(self, mess: types.Message):
-        print(f'Chating between {self.admin_id} and {self.client_id}\nMess from: {mess.from_user.full_name}\nMess text: {mess.text}')
+        logging.warn(f'Chating between {self.admin_id} and {self.client_id}\nMess from: {mess.from_user.full_name}\nMess text: {mess.text}')
         if mess.from_user.id == self.admin_id:
             await bot.send_message(self.client_id,
                                     mess.text)
-            print('adm send mess')
+            logging.warn('adm send mess')
         elif mess.from_user.id == self.client_id:
+            adm_mess = f'Повідомлення від:\n@{mess.from_user.username}\n{mess.from_user.full_name}\n\n{mess.text}'
             await bot.send_message(self.admin_id,
-                                    mess.text)
-            print('cli send mess')
+                                    adm_mess)
+            logging.warn('cli send mess')
             
