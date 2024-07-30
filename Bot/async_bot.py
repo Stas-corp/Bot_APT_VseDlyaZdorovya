@@ -97,7 +97,8 @@ async def runUp_consultation(mess: types.Message, state: FSMContext):
     await mess.reply(client_reply)
     await state.set_state(Form.during_consultation)
 
-@dp.message(Form.during_consultation or Form.order_await) #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+@dp.message(Form.during_consultation)
+@dp.message(Form.order_await)
 async def during_consultation(mess: types.Message, state: FSMContext):
     if  mess.from_user.id in [ChatManager.client_id, ChatManager.admin_id]:
         await ChatManager.chating(mess)
@@ -252,6 +253,13 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
                                                     client_id), 
                                                     {'order': order})
         
+        if OrderManager.get_NotCompletedOrder():
+            admin_message = 'Є не опрацьоване замовлення❗️❗️❗️'
+            for id_adm in admin_chat_ids:
+                await bot.send_message(chat_id=id_adm,
+                                    text=admin_message, 
+                                    reply_markup=adm_kb.adm_go_to_orders_bilder.as_markup())
+
         await bot.answer_callback_query(call.id)
 
     if call.data == adm_kb.inl_btn_answer_consultation.callback_data:

@@ -60,25 +60,28 @@ async def order_queue(mess: types.Message, dialog_manager: DialogManager):
     await dialog_manager.start(DialogSG.PAGERS, mode=StartMode.RESET_STACK)
 
 @dp.message(CommandStart())
-async def send_welcome(mess: types.Message, state: FSMContext):
-    if not JsonManager.login_user(str(mess.from_user.id)):
-        message = '''Привіт!🖐\nЯ бот🤖 аптеки "Все для Здоров'я".\nДля початку, надайте свій контак, для подальшої комунікації 👇'''
-        await state.set_state(Form.no_contact)
-        await bot.send_message(mess.from_user.id,
-                              message,
-                              reply_markup=b_init.rpl_builder)
-    else:
-        user_data = await state.get_data()
-        if 'order' in user_data and isinstance(user_data['order'], dict):
-            # print(user_data)
-            order_completed = user_data['order']['order_completed']
-            if order_completed:
-                await order_mess(mess, mess.from_user.id)
-            else:
-                message = 'У вас є не опрацьоване замовлення! \nДочекайтеся обробки вашого замовлення фахівцем 👩‍⚕️ або зверніться за контактами в описі ☎️'
-                keyboard = InlineKeyboardBuilder().row(b_init.inl_btn_consultation, width=1)
-                await bot.send_message(mess.from_user.id,
-                                        message,
-                                        reply_markup=keyboard.as_markup())
+async def send_welcome(mess: types.Message, state: FSMContext, dialog_manager: DialogManager):
+    if mess.from_user.id in b_init.admin_chat_ids:
+        await dialog_manager.start(DialogSG.PAGERS, mode=StartMode.RESET_STACK)
+    else:   
+        if not JsonManager.login_user(str(mess.from_user.id)):
+            message = '''Привіт!🖐\nЯ бот🤖 аптеки "Все для Здоров'я".\nДля початку, надайте свій контак, для подальшої комунікації 👇'''
+            await state.set_state(Form.no_contact)
+            await bot.send_message(mess.from_user.id,
+                                message,
+                                reply_markup=b_init.rpl_builder)
         else:
-            await order_mess(mess, mess.from_user.id)
+            user_data = await state.get_data()
+            if 'order' in user_data and isinstance(user_data['order'], dict):
+                # print(user_data)
+                order_completed = user_data['order']['order_completed']
+                if order_completed:
+                    await order_mess(mess, mess.from_user.id)
+                else:
+                    message = 'У вас є не опрацьоване замовлення! \nДочекайтеся обробки вашого замовлення фахівцем 👩‍⚕️ або зверніться за контактами в описі ☎️'
+                    keyboard = InlineKeyboardBuilder().row(b_init.inl_btn_consultation, width=1)
+                    await bot.send_message(mess.from_user.id,
+                                            message,
+                                            reply_markup=keyboard.as_markup())
+            else:
+                await order_mess(mess, mess.from_user.id)
