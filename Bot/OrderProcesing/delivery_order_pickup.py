@@ -62,6 +62,7 @@ async def order_received(mess: types.Message, state: FSMContext):
 ***********************************************************
 """
 async def callback_order_delivery_pk(call: types.CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
     if call.data == b_init.inl_btn_pickup_order.callback_data:
         user_id = str(call.from_user.id)
         order = OrderManager()
@@ -80,8 +81,8 @@ async def callback_order_delivery_pk(call: types.CallbackQuery, state: FSMContex
         # await state.update_data(order_obj=json.dumps(order))
         await state.update_data(order=order.__conver_dict__)
 
-    if call.data.startswith('cli_apt_address_'):
-        address = call.data.split('_')[-1]
+    if call.data.startswith('cli_apt_address_') and current_state == Form.set_pickup_address:
+        address = call.data.split('cli_apt_address_')[-1].replace('_', ' ')
         # print(address)
         previous_message = call.message.reply_to_message
         await state.update_data(address=address)

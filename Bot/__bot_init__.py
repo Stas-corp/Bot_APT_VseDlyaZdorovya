@@ -22,7 +22,7 @@ logging.basicConfig(
     level=logging.WARN,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("bot_activity.log"),
+        logging.FileHandler("bot_activity.log", encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
@@ -37,23 +37,56 @@ JsonManager = json_manager.UserManager()
 OrderManager = order_manager.Manager()
 admin_chat_ids = SheetManager.get_admins_id()
 
-apt_adress = [
-    'Салютна',
-    'Фестивальна',
-    'Каштанова'
-]
+apt_adress = {
+    'Аптечний пункт №1': [
+        'Аптечний пункт №1', 
+        'Національний Інститут Раку (хірургічний корпус)', 
+        'Київ, вул. Юлії Здановської (Ломоносова) 33/43', 
+        '+380635196716', 
+        'https://maps.app.goo.gl/ReJezifHAzKCvzkr7'],
+
+    'Аптечний пункт №2': [
+        'Аптечний пункт №2', 
+        'Броварська багатопрофільна клінічна лікарня (терапевтичний корпус)', 
+        'Бровари, вул. Шевченка 14', 
+        '+380932446312', 
+        'https://maps.app.goo.gl/m8bT95d3BPA2V9yj7'],
+
+    'Аптечний пункт №3': [
+        'Аптечний пункт №3', 
+        'КНП Бориспільський міський центр первинної медико-санітарної допомоги', 
+        'Бориспіль, вул. Леоніда Каденюка (Гагарина) 1', 
+        '+380501915634', 
+        'https://maps.app.goo.gl/EiCkAUVvdwdqMECx5'],
+
+    'Аптека №3': [
+        'Аптека №3', 
+        'ЖК Файна Таун, теріторія житлового комплексу', 
+        'Київ, вул. Салютна 2 (будинок №22)', 
+        '+380635200121', 
+        'https://maps.app.goo.gl/MdBKLTgPp7ZEENLdA']
+}
 
 def keyboard_apt_adress() -> InlineKeyboardBuilder:
     keyboard = InlineKeyboardBuilder()
-    for apt in apt_adress:
+    for apt, info in apt_adress.items():
+        # logging.warn(f"cli_apt_address_{apt.replace(' ', '_')}")
         btn = InlineKeyboardButton(
             text=apt,
-            callback_data=f'cli_apt_address_{apt}')
+            callback_data=f"cli_apt_address_{apt.replace(' ', '_')}")
         keyboard.row(btn, width=1)
     return keyboard
+
+def get_apt_info(apt: str) -> str:
+    message = ''
+    info = apt_adress[apt]
+    for str in info:
+        message += f'{str}\n'
+    return message
         
 class Form(StatesGroup):
     no_contact = State()
+    view_contats = State()
     order = State()
     order_await = State()
     order_processing = State()

@@ -20,14 +20,15 @@ class ChatManager:
         self.client_id = None
 
     async def chating(self, mess: types.Message):
-        logging.warn(f'Chating between {self.admin_id} and {self.client_id}\nMess from: {mess.from_user.full_name}\nMess text: {mess.text}')
+        # logging.warn(f'Mess from: {mess.from_user.full_name}\nMess text: {mess.text}')
         if mess.from_user.id == self.admin_id:
+            cli_mess = f'Повідомлення від адміністратора 👩‍💻:\n\n{mess.text}'
             await bot.send_message(self.client_id,
-                                    mess.text)
-            logging.warn('adm send mess')
+                                    text=cli_mess)
+            logging.warn(f'adm send mess:\nMess from: {mess.from_user.full_name}\nMess text: {mess.text}')
         elif mess.from_user.id == self.client_id:
             adm_mess = f'Повідомлення від:\n@{mess.from_user.username}\n{mess.from_user.full_name}\n\n{mess.text}'
             await bot.send_message(self.admin_id,
-                                    adm_mess)
-            logging.warn('cli send mess')
+                                    text=adm_mess)
+            logging.warn(f'cli send mess:\nMess from: {mess.from_user.full_name}\nMess text: {mess.text}')
             

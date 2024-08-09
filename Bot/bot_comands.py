@@ -26,7 +26,7 @@ async def order_mess(mess: types.Message, user_id: int):
     await bot.send_message(user_id,
                            message,
                            reply_markup=b_init.start_inl_builder.as_markup())
-
+    
 @dp.message(Command('adm'), F.from_user.id.in_(admin_chat_ids))
 async def get_auth_user(mess: types.Message):
     data = JsonManager._get_data_()
@@ -51,9 +51,11 @@ async def user_comand(mess: types.Message, state: FSMContext):
 
 @dp.message(Command('contact'))
 async def send_contact(mess: types.Message, state: FSMContext):
+    await state.set_state(Form.view_contats)
     message = 'Наші контакти:'
     await bot.send_message(mess.from_user.id,
-                           message)
+                           message,
+                           reply_markup=b_init.keyboard_apt_adress().as_markup())
     
 @dp.message(Command('wwww'), F.from_user.id.in_(admin_chat_ids))
 async def order_queue(mess: types.Message, dialog_manager: DialogManager):

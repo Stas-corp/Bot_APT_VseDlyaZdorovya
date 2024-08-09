@@ -96,9 +96,11 @@ async def runUp_consultation(mess: types.Message, state: FSMContext):
     client_reply = "Запит прийнято! Очікуйте на відповідь фахівця!"
     await mess.reply(client_reply)
     await state.set_state(Form.during_consultation)
+    logging.warn(f'User {mess.from_user.id} created a request: {mess.text}')
 
 @dp.message(Form.during_consultation)
 @dp.message(Form.order_await)
+@dp.message(Form.view_contats)
 async def during_consultation(mess: types.Message, state: FSMContext):
     if  mess.from_user.id in [ChatManager.client_id, ChatManager.admin_id]:
         await ChatManager.chating(mess)
@@ -116,6 +118,7 @@ async def during_consultation(mess: types.Message, state: FSMContext):
 """
 @dp.callback_query(lambda call: call.data.startswith('cli'))
 async def callback_client(call: types.CallbackQuery, state: FSMContext):
+    current_state = await state.get_state()
     # print('cli_handler')
     await bot.edit_message_reply_markup(chat_id=call.message.chat.id,
                                         message_id=call.message.message_id,
@@ -131,6 +134,12 @@ async def callback_client(call: types.CallbackQuery, state: FSMContext):
 
     if call.data == b_init.inl_btn_main_menu.callback_data:
         await bot_comands.order_mess(call.message, call.from_user.id)
+
+    if call.data.startswith('cli_apt_address_') and current_state == Form.view_contats:
+        apt = call.data.split('cli_apt_address_')[-1].replace('_', ' ')
+        await bot.send_message(chat_id=call.from_user.id,
+                               text=b_init.get_apt_info(apt),
+                               reply_markup=b_init.keyboard_apt_adress().as_markup())
 
     await callback_order_delivery_np(call, state)
     await callback_order_delivery_jk(call, state)
@@ -274,6 +283,7 @@ async def callback_admin(call: types.CallbackQuery, state: FSMContext, dialog_ma
         client_id = int(call.message.text.split()[0][3:])
         ChatManager.set_id_chating(call.from_user.id, client_id)
         await bot.answer_callback_query(call.id)
+        logging.warn(f'Chating between {ChatManager.admin_id} and {ChatManager.client_id}')
 
     if call.data == adm_kb.inl_btn_disconect_consultation.callback_data:
         adm_state = await state.get_state()
