@@ -34,7 +34,7 @@ async def check_address(mess: types.Message, state: FSMContext):
 
 @dp.message(Form.set_address)
 async def set_address(mess: types.Message, state: FSMContext):
-    message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку по житловому комплексу:\n(вулиця, будинок, під'їзд, поверх, квартира)"
+    message = f"Чудово!\nТепер вкажи адресу 📍\nКуди треба зробити доставку по житловому комплексу:\n(будинок, під'їзд, поверх, квартира)"
     await bot.send_message(mess.from_user.id, message)
     await state.set_state(Form.save_address)
 
@@ -53,8 +53,9 @@ async def save_address(mess: types.Message, state: FSMContext):
     
 @dp.message(Form.order)
 async def order_received(mess: types.Message, state: FSMContext):
-    user_data = await state.get_data()
-    order = user_data['order']
+    data = await state.get_data()
+    order = data['order']
+    order['order_id'] = data['reserv_order_id']
     admin_message = 'Нове замовлення ❗️❗️❗️'
     for id_adm in admin_chat_ids:
         await bot.send_message(chat_id=id_adm,
@@ -98,12 +99,13 @@ async def callback_order_delivery_jk(call: types.CallbackQuery, state: FSMContex
         await bot.answer_callback_query(call.id)
         order.update_property(
             user_id=user_id,
-            order_id=await order.get_order_number(),
+            # order_id=await order.get_order_number(),
             delivery_type='JK_delivery',
             user_name=call.from_user.username,
             full_name=call.from_user.full_name,
             phone_number=JsonManager.get_phone_number(str(call.from_user.id)))
         await state.update_data(order=order.__conver_dict__)
+        await state.update_data(reserv_order_id= await order.get_order_number())
 
     if await state.get_state() == Form.save_address:
         previous_message = call.message.reply_to_message

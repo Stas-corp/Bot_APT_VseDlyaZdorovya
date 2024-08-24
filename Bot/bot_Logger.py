@@ -1,5 +1,6 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
+from logging import StreamHandler
 import os
 import glob
 import time
@@ -9,6 +10,8 @@ class Logger:
         self.log_directory = log_directory
         self.log_filename = log_filename
         self.retention_days = retention_days
+        self.logger = logging.getLogger()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         
         if not os.path.exists(log_directory):
             os.makedirs(log_directory)
@@ -19,13 +22,14 @@ class Logger:
                                                 interval=1, 
                                                 backupCount=retention_days, 
                                                 encoding='utf-8')
-        
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         self.handler.setFormatter(formatter)
 
-        self.logger = logging.getLogger()
+        self.stream_handler = logging.StreamHandler()
+        self.stream_handler.setFormatter(formatter)
+        
         self.logger.setLevel(logging.WARN)
         self.logger.addHandler(self.handler)
+        self.logger.addHandler(self.stream_handler)
 
     def delete_old_logs(self):
         """Dell log file olded retention_days"""
@@ -42,24 +46,11 @@ class Logger:
     def info(self, message):
         self.logger.info(message)
 
-    def warning(self, message):
-        self.logger.warning(message)
+    def warn(self, message):
+        self.logger.warn(message)
 
     def error(self, message):
         self.logger.error(message)
 
     def critical(self, message):
         self.logger.critical(message)
-
-# Пример использования
-if __name__ == "__main__":
-
-    logger = Logger()
-
-    logger.info("Информационное сообщение")
-    logger.warning("Предупреждение")
-    logger.error("Ошибка")
-    logger.critical("Критическая ошибка")
-
-    # Удаление старых логов
-    logger.delete_old_logs()
